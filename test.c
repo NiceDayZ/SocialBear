@@ -171,7 +171,9 @@ void response_generator (int conn_fd, char *filename) {
     else {
       strcpy (header_buff, "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nContent-Type: text/html\r\n");   
     }        
-
+    if(strstr(filename, "profile.html")){
+        strcat(header_buff, "Set-Cookie: name=Mihai; Max-Age=60000; Path=/\r\n");
+    }
     strcat (header_buff, "Connection: close\r\n\r\n");
     int writeError;
 
@@ -323,6 +325,7 @@ void parsingPath(int new_socket,char* path){
         if((strstr(path, "profiles/img/") == 0) && (strstr(path, "profiles/css/")== 0)){
             //TODO: personalised profile page
             response_generator(new_socket, "profile.html");
+
         }
         else{
             response_generator(new_socket, profile);
