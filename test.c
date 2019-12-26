@@ -110,7 +110,9 @@ char *find_content_type (char *filename) {
     else if ( strcmp(buf2, ".js") == 0) {
         strcpy (buf2, "Content-Type: text/javascript \r\n");
     }
-
+    else if ( strcmp(buf2, ".php") == 0) {
+        strcpy (buf2, "Content-Type: text/x-php \r\n");
+    }
     else {
         strcpy (buf2, "Content-Type: application/octet-stream \r\n");
     }
@@ -185,7 +187,7 @@ void response_generator (int conn_fd, char *filename) {
         //threadSocket[orderOfTh] = 0;
         pthread_exit("crepat");
     }
-    printf("%s\n\n", header_buff);
+    //printf("%s\n\n", header_buff);
 
     fread (file_buff, sizeof(char), res + 1, fp);
     
@@ -312,6 +314,8 @@ void parsingPath(int new_socket,char* path){
     filesize[0] = '\0';
 
     //printf("%s\n", path);
+
+    //if GET REQUEST
     if(strcmp(path, "") == 0){
         //printf("Home\n");
         //TODO: personalised home page
@@ -333,8 +337,8 @@ void parsingPath(int new_socket,char* path){
         profile[0] = '\0';
     
     }else{
-        printf("Orice altceva\n");
-        printf("%s\n", path);
+       // printf("Orice altceva\n");
+       // printf("%s\n", path);
         response_generator (new_socket, path);
     }
 }
@@ -356,6 +360,8 @@ void raspunde(void *arg)
         char buffer[5000] = {0};
         char responce[MAX_LEN] = {0};
         char path[100] = {0};
+        char description[1024] = {0};
+        char imageURL[1024] = {0};
         long valread;
 
         if((valread = read(new_socket , buffer, MAX_LEN)) < 0){
@@ -368,13 +374,38 @@ void raspunde(void *arg)
         
         if(strlen(buffer) > 10){
             parse(buffer, path);
-            printf("%s\n", buffer);
-            parsingPath(new_socket, path);
+            if(strstr(buffer, "GET") != 0){
+                //printf("GET REQ\n\n\n");
+                parsingPath(new_socket, path);
+            }else{
+                //printf("POST REQ\n\n\n");
+                //char imageBuff[1000000] = {0};
+                char* pch = NULL;
+                
+
+                pch = strtok(buffer, "\r\n");
+
+                while (pch != NULL)
+                {
+                    if(strstr(pch, "text_desc=") != 0){
+                        strcpy(description, pch + 10);
+                        printf("%s\n", description);
+                    }else if(strstr(pch, "image_url=") != 0){
+                        strcpy(imageURL, pch + 10);
+                        printf("%s\n", imageURL);
+                    }
+                    pch = strtok(NULL, "\r\n");
+                }
+               
+                parsingPath(new_socket, path);
+            }
                 //response_generator (new_socket, path);
         }
         buffer[0] = '\0';
         responce[0] = '\0';
         path[0] = '\0';
+        description[0] = '\0';
+        imageURL[0] = '\0';
         //printf("Terminated %d -> %d \n\n", orderOfTh, threadSocket[orderOfTh]);     
     }
 }
