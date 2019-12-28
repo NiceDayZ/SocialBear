@@ -26,6 +26,7 @@
 #define PORT 8080
 #define MAX_LEN 1048000
 
+
 /* codul de eroare returnat de anumite apeluri */
 extern int errno;
 
@@ -61,6 +62,21 @@ void parse(char* line, char* actualPath)
     /* Null terminators (because strncpy does not provide them) */
     path[sizeof(path)] = 0; 
     strcpy(actualPath, path);
+}
+
+char* personalizedProfilePageMaker(char* title, char* h1){
+        char file_buff[MAX_LEN] = {0};
+        char responce[MAX_LEN] = {0};
+        char *resp;
+
+        sprintf(file_buff, "<html> <head> <title> %s </title> </head> <body> <h1> %s </h1> </body></html>", title, h1);
+        
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+
+        resp = responce;
+        return resp;
 }
 
 char *find_content_type (char *filename) {
@@ -173,9 +189,6 @@ void response_generator (int conn_fd, char *filename) {
     else {
       strcpy (header_buff, "HTTP/1.1 500 Internal Server Error\r\nContent-Length: 0\r\nContent-Type: text/html\r\n");   
     }        
-    if(strstr(filename, "profile.html")){
-        strcat(header_buff, "Set-Cookie: name=Mihai; Max-Age=60000; Path=/\r\n");
-    }
     strcat (header_buff, "Connection: close\r\n\r\n");
     int writeError;
 
@@ -327,8 +340,14 @@ void parsingPath(int new_socket,char* path){
         //printf("%s\n", profile);
          
         if((strstr(path, "profiles/img/") == 0) && (strstr(path, "profiles/css/")== 0)){
-            //TODO: personalised profile page
-            response_generator(new_socket, "profile.html");
+            //TODO: personalised profile 
+            
+            strcat(file_buff, personalizedProfilePageMaker("My Profile", profile));
+            
+            write (new_socket, file_buff, strlen(file_buff));
+
+
+            //response_generator(new_socket, "profile.html");
 
         }
         else{
@@ -408,6 +427,9 @@ void raspunde(void *arg)
         imageURL[0] = '\0';
         //printf("Terminated %d -> %d \n\n", orderOfTh, threadSocket[orderOfTh]);     
     }
+
 }
+
+
 
 
