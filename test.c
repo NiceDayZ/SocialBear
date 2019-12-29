@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <signal.h>
 #include <sys/stat.h>
+#include <sqlite3.h>
 
 /* portul folosit */
 #define PORT 8080
@@ -42,6 +43,7 @@ typedef struct thData{
 
 static void *treat(void *); /* functia executata de fiecare thread ce realizeaza comunicarea cu clientii */
 void raspunde(void *);
+int callbackProfilePage(void *returnString, int argc, char **argv, char **azColName);
 
 void parse(char* line, char* actualPath)
 {
@@ -64,12 +66,69 @@ void parse(char* line, char* actualPath)
     strcpy(actualPath, path);
 }
 
-char* personalizedProfilePageMaker(char* title, char* h1){
+char* personalizedProfilePageMaker(char *profile){
         char file_buff[MAX_LEN] = {0};
+        char head[MAX_LEN] = {0};
+        char posts[MAX_LEN] = {0};
+        char bottom [MAX_LEN] = {0};
         char responce[MAX_LEN] = {0};
         char *resp;
 
-        sprintf(file_buff, "<html> <head> <title> %s </title> </head> <body> <h1> %s </h1> </body></html>", title, h1);
+
+        sqlite3 *db;
+        char *err_msg = 0;
+        
+        int rc = sqlite3_open("ceva.db", &db);
+        
+        if (rc != SQLITE_OK) {
+            
+            fprintf(stderr, "Cannot open database: %s\n", 
+                    sqlite3_errmsg(db));
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+        
+        
+        char sqlQuerry[1000] = {0};
+        sprintf(sqlQuerry, "SELECT nume, prenume, profile_img, cover_url FROM users WHERE token = '%s'", profile);
+
+        //printf("Nu crapa pana aici \n");
+
+        char returnedString[100] = {0};
+        rc = sqlite3_exec(db, sqlQuerry, callbackProfilePage, returnedString, &err_msg);
+
+        
+
+        char* pch = NULL;
+        char tokens[10][128] = {0};
+        pch = strtok(returnedString, "|");
+        int i = 0;
+        while (pch != NULL){
+            strcat(tokens[i], pch);         
+            pch = strtok(NULL, "|");
+            ++i;
+        }
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        } 
+        sqlite3_close(db);
+
+        sprintf(head, "<html> <head> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Admin Page</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> <button class=\"btn_follow\">Follow</button> <button>Message</button> </center> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <div class=\"post post_form\" style=\"padding:0;\"> <div contenteditable=\"true\"> Write Something </div> <div contenteditable=\"true\"> Image URL </div> <button class=\"post_form_submit\"></button> </div>",
+        tokens[0],tokens[3],tokens[2],tokens[0],tokens[1]);
+
+        
+        strcat(bottom, "<div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"js/jquery.js\"></script> </body> </html>");
+        
+        sprintf(file_buff, "%s%s", head, bottom);
         
         long resp_size = strlen(file_buff);
 
@@ -77,6 +136,20 @@ char* personalizedProfilePageMaker(char* title, char* h1){
 
         resp = responce;
         return resp;
+}
+
+int callbackProfilePage(void *returnString, int argc, char **argv, char **azColName) {
+    
+    char *stringToBeReturned = (char*) returnString;
+
+    for (int i = 0; i < argc; i++) {
+            strcat(stringToBeReturned, argv[i]);
+            strcat(stringToBeReturned, "|");
+    }
+    stringToBeReturned[strlen(stringToBeReturned)-1] = '\0';
+    
+
+    return 0;
 }
 
 char *find_content_type (char *filename) {
@@ -339,10 +412,10 @@ void parsingPath(int new_socket,char* path){
         char* profile = strstr(path, "profiles/") + 9;
         //printf("%s\n", profile);
          
-        if((strstr(path, "profiles/img/") == 0) && (strstr(path, "profiles/css/")== 0)){
+        if((strstr(path, "profiles/img/") == 0) && (strstr(path, "profiles/css/")== 0) && (strstr(path, "profiles/js/")== 0)){
             //TODO: personalised profile 
-            
-            strcat(file_buff, personalizedProfilePageMaker("My Profile", profile));
+            printf("%s\n", path);
+            strcat(file_buff, personalizedProfilePageMaker(profile));
             
             write (new_socket, file_buff, strlen(file_buff));
 
@@ -400,8 +473,6 @@ void raspunde(void *arg)
                 //printf("POST REQ\n\n\n");
                 //char imageBuff[1000000] = {0};
                 char* pch = NULL;
-                
-
                 pch = strtok(buffer, "\r\n");
 
                 while (pch != NULL)
@@ -429,7 +500,3 @@ void raspunde(void *arg)
     }
 
 }
-
-
-
-
