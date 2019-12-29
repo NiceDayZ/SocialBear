@@ -102,7 +102,7 @@ char* personalizedProfilePageMaker(char *profile){
         
 
         char* pch = NULL;
-        char tokens[10][128] = {0};
+        char tokens[4][128] = {0};
         pch = strtok(returnedString, "|");
         int i = 0;
         while (pch != NULL){
