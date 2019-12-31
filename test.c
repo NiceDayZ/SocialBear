@@ -44,6 +44,7 @@ typedef struct thData{
 static void *treat(void *); /* functia executata de fiecare thread ce realizeaza comunicarea cu clientii */
 void raspunde(void *);
 int callbackProfilePage(void *returnString, int argc, char **argv, char **azColName);
+int callbackProfilePosts(void *returnString, int argc, char **argv, char **azColName);
 
 void parse(char* line, char* actualPath)
 {
@@ -66,11 +67,11 @@ void parse(char* line, char* actualPath)
     strcpy(actualPath, path);
 }
 
-char* personalizedProfilePageMaker(char *profile){
+char* personalizedProfilePageMaker(char *profile, char *cookie){
         char file_buff[MAX_LEN] = {0};
-        char head[MAX_LEN] = {0};
+        char head[5000] = {0};
         char posts[MAX_LEN] = {0};
-        char bottom [MAX_LEN] = {0};
+        char bottom [5000] = {0};
         char responce[MAX_LEN] = {0};
         char *resp;
 
@@ -99,7 +100,7 @@ char* personalizedProfilePageMaker(char *profile){
         char returnedString[100] = {0};
         rc = sqlite3_exec(db, sqlQuerry, callbackProfilePage, returnedString, &err_msg);
 
-        
+       
 
         char* pch = NULL;
         char tokens[4][128] = {0};
@@ -119,16 +120,67 @@ char* personalizedProfilePageMaker(char *profile){
             sqlite3_close(db);
             
             pthread_exit("O crepat la baza de date");
-        } 
+        }
+
+        
+        char sqlQuerryForPosts[1000] = {0};
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' ORDER BY p.posted_date DESC", profile);
+        
+        char returnedPosts[MAX_LEN] = {0};
+        rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg); 
+
+        
+
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
         sqlite3_close(db);
+
+        char* pch2 = NULL;
+        char postsReturned[105][2050] = {0};
+        pch2 = strtok(returnedPosts, "~");
+        i = 0;
+        while (pch2 != NULL){
+            strcat(postsReturned[i], pch2);         
+            pch2 = strtok(NULL, "~");
+            ++i;
+        }
+
+        for(int j = 0; j < i; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[7][1025] = {0};
+            postTab = strtok(postsReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"#\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[3], tokensForPost[0], tokensForPost[1], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
 
         sprintf(head, "<html> <head> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Admin Page</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> <button class=\"btn_follow\">Follow</button> <button>Message</button> </center> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <div class=\"post post_form\" style=\"padding:0;\"> <div contenteditable=\"true\"> Write Something </div> <div contenteditable=\"true\"> Image URL </div> <button class=\"post_form_submit\"></button> </div>",
         tokens[0],tokens[3],tokens[2],tokens[0],tokens[1]);
 
-        
+       
+        //sprintf(posts)
+
         strcat(bottom, "<div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"js/jquery.js\"></script> </body> </html>");
         
-        sprintf(file_buff, "%s%s", head, bottom);
+        sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
         long resp_size = strlen(file_buff);
 
@@ -147,6 +199,20 @@ int callbackProfilePage(void *returnString, int argc, char **argv, char **azColN
             strcat(stringToBeReturned, "|");
     }
     stringToBeReturned[strlen(stringToBeReturned)-1] = '\0';
+    
+
+    return 0;
+}
+
+int callbackProfilePosts(void *returnString, int argc, char **argv, char **azColName) {
+    
+    char *stringToBeReturned = (char*) returnString;
+
+    for (int i = 0; i < argc; i++) {
+            strcat(stringToBeReturned, argv[i]);
+            strcat(stringToBeReturned, "|");
+    }
+    stringToBeReturned[strlen(stringToBeReturned)-1] = '~';
     
 
     return 0;
@@ -410,12 +476,11 @@ void parsingPath(int new_socket,char* path){
     }else if(strstr(path, "profiles/")){
         //printf("Profiles page\n");
         char* profile = strstr(path, "profiles/") + 9;
-        //printf("%s\n", profile);
+        //
          
         if((strstr(path, "profiles/img/") == 0) && (strstr(path, "profiles/css/")== 0) && (strstr(path, "profiles/js/")== 0)){
             //TODO: personalised profile 
-            printf("%s\n", path);
-            strcat(file_buff, personalizedProfilePageMaker(profile));
+            strcat(file_buff, personalizedProfilePageMaker(profile, NULL));
             
             write (new_socket, file_buff, strlen(file_buff));
 
