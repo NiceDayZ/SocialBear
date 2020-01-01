@@ -1,0 +1,97 @@
+header {
+    background-color: #2A80BA;
+    text-align: center;
+    padding:30px 0 140px 0;
+}
+header .title {
+	font-size:38px;
+	line-height:50px;
+	display:block;
+	margin: 50px 0 20px 0;
+	color: #ffffff;
+	font-weight:300;
+}
+header .paragraph {
+	font-size:17px;
+	display:block;
+	line-height:24px;
+	color: #ffffff;
+	font-weight:400;
+}
+.small {
+	display: none;
+}
+.form {
+    width: calc(100% - 20px);
+	max-width: 1000px;
+    margin: -70px auto 40px auto;
+    padding: 30px 40px;
+    background: #ffffff;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+    border-radius: 3px;
+}
+.form .title {
+	text-transform: uppercase;
+	margin:0 0 30px 0;
+	font-size:30px;
+	display:block;
+	color: #2A80BA;
+	font-weight:300;
+}
+.login {
+	float: right;
+	margin: 3px 3px 20px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24);
+}
+.logo {
+	float:left;
+	height: 100px;
+}
+.login input[type="text"],
+.login input[type="password"],
+.login input[type="submit"]{
+	width: 120px;
+	padding: 3px 8px;
+	font-size: 12px;
+	display: inline-block;
+	margin: 0;
+	float: left;
+    box-shadow: none;
+}
+.login input[type="text"]{
+	border-right: 1px solid #DDDDDD;
+	border-radius:2px 0 0 2px;
+}
+@media screen and (max-width: 600px){
+	.logo {
+		float: none;
+		display: block;
+		margin: 0 auto;
+	}
+	.login {
+		float: none;
+		margin: 30px auto 2px auto;
+		max-width: 300px;
+	}
+	.login input[type="text"],
+	.login input[type="password"],
+	.login input[type="submit"]{
+		width: 100%;
+		padding: 8px 10px;
+		font-size: 15px;
+		float: none;
+		display: block;
+	}
+	.login input[type="text"]{
+		border-right: none;
+		border-radius:2px 2px 0 0;
+	}
+
+	.big {
+		display: none;
+	}
+
+	.small {
+		display: block;
+	}
+}

@@ -67,6 +67,102 @@ void parse(char* line, char* actualPath)
     strcpy(actualPath, path);
 }
 
+char* personalizedFeedPageMaker(char *cookie){
+        
+        char file_buff[MAX_LEN] = {0};
+        char head[5000] = {0};
+        char posts[MAX_LEN] = {0};
+        char bottom [5000] = {0};
+        char responce[MAX_LEN] = {0};
+        char *resp;
+
+
+        sqlite3 *db;
+        char *err_msg = 0;
+        
+        int rc = sqlite3_open("ceva.db", &db);
+        
+        if (rc != SQLITE_OK) {
+            
+            fprintf(stderr, "Cannot open database: %s\n", 
+                    sqlite3_errmsg(db));
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+    if(cookie == NULL){
+        printf("Feed for non existend user\n");
+        strcat(head, "<html> <head> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" class=\"nav\"/> <img src=\"img/header/notifications-button.png\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> <img src=\"img/header/burn-button.png\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
+        
+        char sqlQuerryForPosts[1000] = {0};
+        strcat(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where p.grup_id = 0 ORDER BY p.posted_date DESC");
+        
+        char returnedPosts[MAX_LEN] = {0};
+        rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg); 
+
+        
+
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+        sqlite3_close(db);
+
+        char* pch2 = NULL;
+        char postsReturned[105][2050] = {0};
+        pch2 = strtok(returnedPosts, "~");
+        int i = 0;
+        while (pch2 != NULL){
+            strcat(postsReturned[i], pch2);         
+            pch2 = strtok(NULL, "~");
+            ++i;
+        }
+
+        for(int j = 0; j < i; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[7][1025] = {0};
+            postTab = strtok(postsReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"#\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[3], tokensForPost[0], tokensForPost[1], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
+        
+        strcat(bottom, "</div> </div> <div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"js/jquery.js\"></script> </body> </html>");
+        
+        sprintf(file_buff, "%s%s%s", head,posts,bottom);
+        
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+
+        resp = responce;
+        return resp;
+
+
+    }else{
+        printf("Feed for %s\n", cookie);
+        return "Deocamdata atat\r\n";
+    }
+    
+}
+
 char* personalizedProfilePageMaker(char *profile, char *cookie){
         char file_buff[MAX_LEN] = {0};
         char head[5000] = {0};
@@ -455,7 +551,7 @@ static void *treat(void * arg)
   		
 };
 
-void parsingPath(int new_socket,char* path){
+void parsingPath(int new_socket, char* path, char* cookie){
 
     char header_buff [2048];
     char file_buff [MAX_LEN];
@@ -471,7 +567,9 @@ void parsingPath(int new_socket,char* path){
     if(strcmp(path, "") == 0){
         //printf("Home\n");
         //TODO: personalised home page
-        response_generator(new_socket, "home.html");
+        strcat(file_buff, personalizedFeedPageMaker(cookie));
+            
+        write (new_socket, file_buff, strlen(file_buff));
 
     }else if(strstr(path, "profiles/")){
         //printf("Profiles page\n");
@@ -483,15 +581,15 @@ void parsingPath(int new_socket,char* path){
             strcat(file_buff, personalizedProfilePageMaker(profile, NULL));
             
             write (new_socket, file_buff, strlen(file_buff));
-
-
-            //response_generator(new_socket, "profile.html");
-
         }
         else{
             response_generator(new_socket, profile);
         }
         profile[0] = '\0';
+    
+    }else if(strcmp(path, "login") == 0){
+        
+        response_generator(new_socket, "login.html");
     
     }else{
        // printf("Orice altceva\n");
@@ -515,10 +613,7 @@ void raspunde(void *arg)
         //int new_socket = threadSocket[orderOfTh];
 
         char buffer[5000] = {0};
-        char responce[MAX_LEN] = {0};
         char path[100] = {0};
-        char description[1024] = {0};
-        char imageURL[1024] = {0};
         long valread;
 
         if((valread = read(new_socket , buffer, MAX_LEN)) < 0){
@@ -531,13 +626,13 @@ void raspunde(void *arg)
         
         if(strlen(buffer) > 10){
             parse(buffer, path);
-            if(strstr(buffer, "GET") != 0){
-                //printf("GET REQ\n\n\n");
-                parsingPath(new_socket, path);
-            }else{
-                //printf("POST REQ\n\n\n");
-                //char imageBuff[1000000] = {0};
-                char* pch = NULL;
+            if(strstr(buffer, "GET ") != 0){
+                //GET REQUEST
+                //TODO: ADD cookies
+                parsingPath(new_socket, path, NULL);
+            }else if(strstr(buffer, "POST ") != 0){
+                //POST REQUEST
+                /* char* pch = NULL;
                 pch = strtok(buffer, "\r\n");
 
                 while (pch != NULL)
@@ -551,16 +646,18 @@ void raspunde(void *arg)
                     }
                     pch = strtok(NULL, "\r\n");
                 }
-               
-                parsingPath(new_socket, path);
+               //TODO add session cookie
+                parsingPath(new_socket, path, NULL); */
+                printf("%s\n\n\n", buffer);
+                response_generator(new_socket, "home.html");
+
             }
                 //response_generator (new_socket, path);
         }
+
         buffer[0] = '\0';
-        responce[0] = '\0';
         path[0] = '\0';
-        description[0] = '\0';
-        imageURL[0] = '\0';
+
         //printf("Terminated %d -> %d \n\n", orderOfTh, threadSocket[orderOfTh]);     
     }
 

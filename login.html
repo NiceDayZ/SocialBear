@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title></title>
+        <meta charset="utf-8" />
+        <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
+        <link href="css/reset-login.css" type="text/css" rel="stylesheet" />
+        <link href="css/login.css" type="text/css" rel="stylesheet" />
+        <link href="css/input.css" type="text/css" rel="stylesheet" />
+    </head>
+    <body>
+        <header>
+			<div id="wrapper" style="overflow:hidden;">
+				<img src="img/header/SocialBear.png" class="logo"/>
+				
+
+				<div id="wrapper" class="small" style="max-width:600px;">
+					<span class="title">Welcome to SocialBear</span>
+					<div class="paragraph">The world biggest social network for bears</div>
+				</div>
+				
+				<div class="login">
+					<input id = "loginId" type="text" placeholder="Email" />
+					<input id = "loginPass" type="password" placeholder="Password" />
+					<input id ="loginButton" type="submit" value="Login" />
+				</div>
+			</div>
+			<div id="wrapper" class="big" style="max-width:600px;">
+				<span class="title">Welcome to SocialBear</span>
+				<div class="paragraph">The world biggest social network for bears</div>
+			</div>
+        </header>
+        <div class="form" style="max-width:400px;">
+				<span class="title">sign up</span>
+                <div class="group">      
+                  <input type="text" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Full Name</label>
+                </div>
+				
+                <div class="group">      
+                  <input type="password" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Your Email</label>
+                </div>
+				
+                <div class="group">      
+                  <input type="password" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>New Password</label>
+                </div>
+				
+				<input type="submit" value="Sign Up" />
+		</div>
+		<footer>
+		
+    </footer>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script>
+      $(document).ready(function() {
+          $('#loginButton').click(function(e) {
+              e.preventDefault();
+              $.ajax({
+                  type: 'POST',
+                  dataType: "text",
+                  url: '/login',
+                  data: {loginId: $('#loginId').val(), loginPass: $('#loginPass').val()},
+                  success: function(data)
+                  {
+                      console.log(data);
+                  }
+              });
+          });
+      });
+
+/*       $.ajax({
+        type: "GET",
+        url: '/home.html',
+        success: function(data) {
+          window.location = 'home.html'
+        }
+      }); */
+
+  </script>
+    </body>
+</html>

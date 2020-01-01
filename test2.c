@@ -21,12 +21,18 @@ int main(void) {
         return 1;
     }
     
-    char *sql = "SELECT user_id AS id, nume FROM users";
+    char *sql = "SELECT user_id AS id, nume FROM users WHERE id = 3";
     char testString[1000] = {0};
+
+    
         
     rc = sqlite3_exec(db, sql, callback, testString, &err_msg);
     
-    //printf("%s\n", HTML_PROFILE("Mihai", "ceva"));
+    if(strlen(testString) == 0){
+        printf("Nimic Baiatul meu\n");
+    }else{
+        printf("%s\n", testString);
+    }
 
     if (rc != SQLITE_OK ) {
         
@@ -51,13 +57,14 @@ int callback(void *NotUsed, int argc, char **argv,
     
     for (int i = 0; i < argc; i++) {
 
-        printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+        strcat(test, argv[i]);
     }
 
-    strcat(test, argv[1]);
     
     
-    printf("\n");
+    
+    //printf("\n");
     
     return 0;
 }
