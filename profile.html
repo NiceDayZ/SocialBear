@@ -47,12 +47,18 @@
 		<div class="feed">
 			<div class="posts">
                 <div class="post post_form" style="padding:0;">
-                    <div contenteditable="true">
-                        Write Something
+                    <div id="description" contenteditable="true">
+						Description
 					</div>
-					<div contenteditable="true">
+					<div id="imageURL" contenteditable="true">
                         Image URL
-                    </div>
+					</div>
+					<div contenteditable="false">
+                        <input type="checkbox" name="rGroup" value="1" id="r1" checked="checked" />
+						<label class="whatever" for="r1">Private</label>
+					</div>
+					
+					
                     <button class="post_form_submit"></button>
                 </div>
 				<div class="post">
