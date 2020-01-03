@@ -43,8 +43,29 @@ typedef struct thData{
 
 static void *treat(void *); /* functia executata de fiecare thread ce realizeaza comunicarea cu clientii */
 void raspunde(void *);
+
+//SQL callbacks
 int callbackProfilePage(void *returnString, int argc, char **argv, char **azColName);
 int callbackProfilePosts(void *returnString, int argc, char **argv, char **azColName);
+int callbackLogin(void *returnString, int argc, char **argv, char **azColName);
+
+int URIdecode (char *str, char *copy) {
+        int len = strlen(str), i, j = 0;
+        char hex[3] = {0};
+ 
+        for (i = 0; i < len; i++) {
+                if (str[i] == '%' && i < len-2) {
+                        i++;
+                        strncpy(hex, &str[i++], 2);
+                        copy[j] = strtol(hex, NULL, 16);
+                } else if (str[i] == '+') copy[j] = ' ';
+                else copy[j] = str[i];
+                j++;
+        }
+        copy[j] = '\0';
+ 
+        return j;
+}
 
 void parse(char* line, char* actualPath)
 {
@@ -144,7 +165,7 @@ char* personalizedFeedPageMaker(char *cookie){
             singularPost[0] = '\0';
         }
         
-        strcat(bottom, "</div> </div> <div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"js/jquery.js\"></script> </body> </html>");
+        strcat(bottom, "</div> </div> <div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -274,7 +295,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
        
         //sprintf(posts)
 
-        strcat(bottom, "<div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"js/jquery.js\"></script> </body> </html>");
+        strcat(bottom, "<div class=\"chat\"> <div class=\"chat_element\"> <img src=\"img/profile/4.jpg\" class=\"element_image\" /> <h2>Full Name</h2> </div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -309,6 +330,21 @@ int callbackProfilePosts(void *returnString, int argc, char **argv, char **azCol
             strcat(stringToBeReturned, "|");
     }
     stringToBeReturned[strlen(stringToBeReturned)-1] = '~';
+    
+
+    return 0;
+}
+
+int callbackLogin(void *returnString, int argc, char **argv, char **azColName) {
+    
+    char *stringToBeReturned = (char*) returnString;
+
+    for (int i = 0; i < argc; i++) {
+        //printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
+            if(strcmp(azColName[i], "token") == 0){
+                strcat(stringToBeReturned, argv[i]);
+            }
+    }
     
 
     return 0;
@@ -408,7 +444,7 @@ void response_generator (int conn_fd, char *filename) {
     if (fp == NULL) {
     //printf("Problema aici: %d (%s) Dupa <%d> fisiere deschise\n", fp, filename, filesOpen);
     printf ("fp is null or filename = 404\n");
-        strcpy (header_buff, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nContent-Type: text/plain\r\n");       
+        strcpy (header_buff, "HTTP/1.1 404 Not Found\r\nContent-Length: 0\r\nContent-Type: text/plain\r\n\r\n ");       
     }
 
     else if (fp != NULL) {
@@ -451,6 +487,162 @@ void response_generator (int conn_fd, char *filename) {
         pthread_exit("crepat");
     }
     
+}
+
+void post_response_generator(int conn_fd, char* requestPage, char* requestHead){
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("Database Error");
+    }
+    
+    if(strcmp(requestPage, "login") == 0){
+        char loginID[128] = {0};
+        char decodedLoginID[128] = {0};
+        char password[128] = {0};
+        char responce[1024] = {0};
+
+       
+
+        char* pch = NULL;
+        pch = strtok(requestHead, "&");
+
+        while (pch != NULL)
+        {
+            if(strstr(pch, "loginId=") != 0){
+                strcpy(loginID, pch + 8);
+                URIdecode(loginID, decodedLoginID);
+            }else if(strstr(pch, "loginPass=") != 0){
+                strcpy(password, pch + 10);
+            }
+            pch = strtok(NULL, "&");
+        }
+        
+        char sql[300] = {0};
+        sprintf(sql, "SELECT token FROM users WHERE email='%s' AND password = '%s'", decodedLoginID, password);
+        char token[128] = {0};
+        
+        rc = sqlite3_exec(db, sql, callbackLogin, token, &err_msg);
+    
+
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("Database Error");
+        } 
+        
+        sqlite3_close(db);
+
+        if(strlen(token) == 0){
+            strcpy(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfailure");
+        }else{
+            sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nSet-Cookie: token=%s; Max-Age=120\r\nConnection: close\r\n\r\nsuccess", token);
+        }
+
+        int writeError;
+
+        if((writeError = write (conn_fd, responce, strlen(responce))) < 0){
+            pthread_exit("crepat");
+        }
+
+        responce[0] = '\0';
+        loginID[0] = '\0';
+        password[0] = '\0';
+        sql[0] = '\0';
+        token[0] = '\0';
+
+    }else if(requestPage, "register"){
+        printf("REGISTER REQUEST \n\n%s\n\n", requestHead);
+
+        char registerName[128] = {0};
+        char registerPreName[128] = {0};
+        char registerEmail[128] = {0};
+        char registerID[128] = {0};
+        char decodedLoginEmail[128] = {0};
+        char password[128] = {0};
+        char responce[1024] = {0};
+
+       
+
+        char* pch = NULL;
+        pch = strtok(requestHead, "&");
+
+        while (pch != NULL)
+        {
+            if(strstr(pch, "registePreName=") != 0){
+                strcpy(registerPreName, pch + 15);
+                //URIdecode(loginID, decodedLoginID);
+            }else if(strstr(pch, "registerName=") != 0){
+                strcpy(registerName, pch + 13);
+            }else if(strstr(pch, "registerEmail=") != 0){
+                strcpy(registerEmail, pch + 14);
+                URIdecode(registerEmail, decodedLoginEmail);
+            }else if(strstr(pch, "registerToken=") != 0){
+                strcpy(registerID, pch + 14);
+            }else if(strstr(pch, "registerPassword=") != 0){
+                strcpy(password, pch + 17);
+            }
+            pch = strtok(NULL, "&");
+        }
+        char testString[1000] = {0};
+        int i = 0;
+        do{
+            i++;
+            testString[0] = '\0';
+            char sql[1000] = {0};
+            sprintf(sql, "SELECT token from users where user_id = %d", i);
+            rc = sqlite3_exec(db, sql, callbackLogin, testString, &err_msg);
+        }while(strlen(testString) != 0);
+
+        printf("%s | %s | %s | %s | %s | %d%s\n\n", registerName, registerPreName, decodedLoginEmail, registerID, password, i, registerID);
+
+        char sqlInsert[1000] = {0};
+        sprintf(sqlInsert, "INSERT INTO USERS(user_id ,nume, prenume, id_auth, password, email, token, profile_img, admin_right, cover_url) VALUES (%d, '%s', '%s', '%s', '%s', '%s', '%d%s', 'img/profile/1.png', 'no', 'img/cover/Wallpaper-Macbook.jpg')",
+                i, registerName, registerPreName, registerID, password, decodedLoginEmail, i, registerID);
+        
+        rc = sqlite3_exec(db, sqlInsert, 0, 0, &err_msg);
+    
+
+        if (rc != SQLITE_OK ) {
+            
+            if(strstr(err_msg, "UNIQUE") != 0){
+                strcpy(responce, "HTTP/1.1 200 OK\r\nContent-Length: 5\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nemail");
+            }else{
+                sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\n%s", strlen(err_msg), err_msg);
+            }
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+        }else{
+            sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nSet-Cookie: token=%d%s; Max-Age=120\r\nConnection: close\r\n\r\nsuccess", i, registerID);
+        }
+        
+        int writeError;
+        if((writeError = write (conn_fd, responce, strlen(responce))) < 0){
+            pthread_exit("crepat");
+        }
+
+        registerName[0] = '\0';
+        registerPreName[0] = '\0';
+        registerEmail[0] = '\0';
+        registerID[0] = '\0';
+        decodedLoginEmail[0] = '\0';
+        password[0] = '\0';
+        responce[0] = '\0';
+    }
 }
 
 int main ()
@@ -588,7 +780,6 @@ void parsingPath(int new_socket, char* path, char* cookie){
         profile[0] = '\0';
     
     }else if(strcmp(path, "login") == 0){
-        
         response_generator(new_socket, "login.html");
     
     }else{
@@ -629,28 +820,10 @@ void raspunde(void *arg)
             if(strstr(buffer, "GET ") != 0){
                 //GET REQUEST
                 //TODO: ADD cookies
+                printf("%s\n", buffer);
                 parsingPath(new_socket, path, NULL);
             }else if(strstr(buffer, "POST ") != 0){
-                //POST REQUEST
-                /* char* pch = NULL;
-                pch = strtok(buffer, "\r\n");
-
-                while (pch != NULL)
-                {
-                    if(strstr(pch, "text_desc=") != 0){
-                        strcpy(description, pch + 10);
-                        printf("%s\n", description);
-                    }else if(strstr(pch, "image_url=") != 0){
-                        strcpy(imageURL, pch + 10);
-                        printf("%s\n", imageURL);
-                    }
-                    pch = strtok(NULL, "\r\n");
-                }
-               //TODO add session cookie
-                parsingPath(new_socket, path, NULL); */
-                printf("%s\n\n\n", buffer);
-                response_generator(new_socket, "home.html");
-
+                post_response_generator(new_socket, path, strstr(buffer, "\r\n\r\n") + 4);
             }
                 //response_generator (new_socket, path);
         }

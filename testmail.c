@@ -1,21 +1,35 @@
+#include <sys/types.h>      /* needed to use pid_t, etc. */
+#include <sys/wait.h>       /* needed to use wait() */  
 #include <stdio.h>
-#include <string.h>
+#include <stdlib.h>
+#include <unistd.h>         /* LINUX constants and functions (fork(), etc.) */
 
-int main() {
+int main()
+{
+ pid_t pid;
 
-        char cmd[100];  // to hold the command.
-        char to[] = "sample@example.com"; // email id of the recepient.
-        char body[] = "SO rocks";    // email body.
-        char tempFile[100];     // name of tempfile.
+ pid = fork();
+  
+ if (pid < 0)
+  {
+   printf("A fork error has occurred.\n");
+   exit(-1);
+  }
+ else 
+  if (pid == 0) /* We are in the child. */
+   {
+    printf("I am the child, about to call ps using execlp.\n");
+    return execl ("/bin/mail", "mail", "-s", "Test Subject", "craciunmihai42@gmail.com");
+   /*  If execlp() is successful, we should not reach this next line. */
+    printf("The call to execlp() was not successful.\n");
+    exit(127);
+   }
+  else  /* We are in the parent. */
+   {
+    wait(0);               /* Wait for the child to terminate. */
+    printf("I am the parent.  The child just ended.  I will now exit.\n");
+    exit(0);
+   }
 
-        strcpy(tempFile,tempnam("/tmp","sendmail")); // generate temp file name.
-
-        FILE *fp = fopen(tempFile,"w"); // open it for writing.
-        fprintf(fp,"%s\n",body);        // write body to it.
-        fclose(fp);             // close it.
-
-        sprintf(cmd,"sendmail %s < %s",to,tempFile); // prepare command.
-        system(cmd);     // execute it.
-
-        return 0;
+ return(0);  
 }

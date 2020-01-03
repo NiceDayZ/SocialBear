@@ -32,28 +32,43 @@
         </header>
         <div class="form" style="max-width:400px;">
 				<span class="title">sign up</span>
+                
                 <div class="group">      
-                  <input type="text" required>
+                  <input id="registerPreName" type="text" required>
                   <span class="highlight"></span>
                   <span class="bar"></span>
-                  <label>Full Name</label>
+                  <label>First Name</label>
+                </div>
+
+                <div class="group">      
+                  <input id="registerName" type="text" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>Last Name</label>
                 </div>
 				
                 <div class="group">      
-                  <input type="password" required>
+                  <input id="registerEmail" type="text" required>
                   <span class="highlight"></span>
                   <span class="bar"></span>
                   <label>Your Email</label>
                 </div>
+
+                <div class="group">      
+                  <input id="registerToken" type="text" required>
+                  <span class="highlight"></span>
+                  <span class="bar"></span>
+                  <label>User ID</label>
+                </div>
 				
                 <div class="group">      
-                  <input type="password" required>
+                  <input id="registerPassword" type="password" required>
                   <span class="highlight"></span>
                   <span class="bar"></span>
                   <label>New Password</label>
                 </div>
 				
-				<input type="submit" value="Sign Up" />
+				<input id="registerButton" type="submit" value="Sign Up" />
 		</div>
 		<footer>
 		
@@ -70,7 +85,37 @@
                   data: {loginId: $('#loginId').val(), loginPass: $('#loginPass').val()},
                   success: function(data)
                   {
-                      console.log(data);
+                    if(data == "success"){
+                      window.location.href = "/";
+                    }else{
+                      alert("Invalid credentials");
+                    }
+                    
+                  }
+              });
+          });
+
+          $('#registerButton').click(function(e) {
+              e.preventDefault();
+              $.ajax({
+                  type: 'POST',
+                  dataType: "text",
+                  url: '/register',
+                  data: {registePreName: $('#registerPreName').val(), 
+                         registerName: $('#registerName').val(),
+                         registerEmail: $('#registerEmail').val(),
+                         registerToken: $('#registerToken').val(),
+                         registerPassword: $('#registerPassword').val(),},
+                  success: function(data)
+                  {
+                    if(data == "success"){
+                      window.location.href = "/";
+                    }else if(data == "email"){
+                      alert("There already exist an account with this email");
+                    }else{
+                      alert("There was a problem. Please try again later. Error: ", data);
+                    }
+                    
                   }
               });
           });

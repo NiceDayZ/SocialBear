@@ -21,22 +21,16 @@ int main(void) {
         return 1;
     }
     
-    char *sql = "SELECT user_id AS id, nume FROM users WHERE id = 3";
+    char *sql = "INSERT INTO USERS(user_id ,nume, prenume, id_auth, password, email, token, profile_img, admin_right, cover_url) VALUES (5,'Oare', 'Cineva', 'cineva234', 'cineva213', 'ceva@yahoo.com', '5cineva234', 'img/profile/1.png', 'no', 'https://cdn.pixabay.com/photo/2018/01/12/10/19/fantasy-3077928__340.jpg');SELECT user_id AS id, nume FROM users WHERE id = 3";
+    char *sqlPostare = "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (1, 0, '2019-01-01 10:00:00', 'https://cdn.pixabay.com/photo/2018/01/12/10/19/fantasy-3077928__340.jpg', 'Lorem ipsum dolor sit amed, dolorem ceva oricum asta e doar un test')";
     char testString[1000] = {0};
 
+    rc = sqlite3_exec(db, sqlPostare, 0, 0, &err_msg);
     
-        
-    rc = sqlite3_exec(db, sql, callback, testString, &err_msg);
-    
-    if(strlen(testString) == 0){
-        printf("Nimic Baiatul meu\n");
-    }else{
-        printf("%s\n", testString);
-    }
 
     if (rc != SQLITE_OK ) {
         
-        fprintf(stderr, "Failed to select data\n");
+        fprintf(stderr, "Failed to insert data\n");
         fprintf(stderr, "SQL error: %s\n", err_msg);
 
         sqlite3_free(err_msg);
