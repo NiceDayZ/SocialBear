@@ -114,7 +114,7 @@ char* personalizedFeedPageMaker(char *cookie){
 
     if(cookie == NULL){
         printf("Feed for non existend user\n");
-        strcat(head, "<html> <head> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" class=\"nav\"/> <img src=\"img/header/notifications-button.png\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> <img src=\"img/header/burn-button.png\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
+        strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" class=\"nav\"/> <img src=\"img/header/notifications-button.png\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> <img src=\"img/header/burn-button.png\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
         
         char sqlQuerryForPosts[1000] = {0};
         strcat(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 ORDER BY p.posted_date DESC");
@@ -179,7 +179,9 @@ char* personalizedFeedPageMaker(char *cookie){
 
     }else{
 
-        strcat(head, "<html> <head> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" class=\"nav\"/> <img src=\"img/header/notifications-button.png\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> <img src=\"img/header/burn-button.png\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
+        //Feed for existing user
+
+        strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" class=\"nav\"/> <img src=\"img/header/notifications-button.png\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> <img src=\"img/header/burn-button.png\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\"> Description </div> <div id=\"imageURL\" contenteditable=\"true\"> Image URL </div> <div contenteditable=\"false\"> <input type=\"checkbox\" name=\"rGroup\" value=\"1\" id=\"r1\" checked=\"unchecked\" /> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button class=\"post_form_submit\"></button> </div>");
         
         char sqlQuerryForPosts[1000] = {0};
         sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c) order by p.posted_date desc LIMIT 100;", cookie[0], cookie[0], cookie[0]);
@@ -389,7 +391,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
             singularPost[0] = '\0';
         }
 
-        sprintf(head, "<html> <head> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Admin Page</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> <button class=\"btn_follow\">Follow</button> <button>Message</button> </center> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <div class=\"post post_form\" style=\"padding:0;\"> <div contenteditable=\"true\"> Write Something </div> <div contenteditable=\"true\"> Image URL </div> <button class=\"post_form_submit\"></button> </div>",
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Admin Page</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> <button class=\"btn_follow\">Follow</button> <button>Message</button> </center> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <div class=\"post post_form\" style=\"padding:0;\"> <div contenteditable=\"true\"> Write Something </div> <div contenteditable=\"true\"> Image URL </div> <button class=\"post_form_submit\"></button> </div>",
         tokens[0],tokens[3],tokens[2],tokens[0],tokens[1]);
 
        
@@ -663,7 +665,7 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead){
         sql[0] = '\0';
         token[0] = '\0';
 
-    }else if(requestPage, "register"){
+    }else if(strcmp(requestPage, "register") == 0){
 
         char registerName[128] = {0};
         char registerPreName[128] = {0};
@@ -723,7 +725,7 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead){
             sqlite3_free(err_msg);
             sqlite3_close(db);
         }else{
-            sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nSet-Cookie: token=%d%s; Max-Age=120\r\nConnection: close\r\n\r\nsuccess", i, registerID);
+            sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nSet-Cookie: token=%d%s; Max-Age=86400\r\nConnection: close\r\n\r\nsuccess", i, registerID);
         }
         
         int writeError;
@@ -738,6 +740,8 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead){
         decodedLoginEmail[0] = '\0';
         password[0] = '\0';
         responce[0] = '\0';
+    }else if(strcmp(requestPage, "postare") == 0){
+        
     }
 }
 
@@ -904,6 +908,7 @@ void raspunde(void *arg)
         }else{
         
         if(strlen(buffer) > 10){
+            printf("%s\n\n", buffer);
             parse(buffer, path);
             if(strstr(buffer, "GET ") != 0){
                 //GET REQUEST

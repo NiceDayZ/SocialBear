@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html>
-    <head>
-        <title></title>
+	<head>
+        <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+        <meta content="utf-8" http-equiv="encoding">
+        <title>Social Bear Login</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width; initial-scale=1.0;" />
         <link href="css/reset-login.css" type="text/css" rel="stylesheet" />
@@ -75,6 +77,13 @@
     </footer>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     <script>
+
+      $(document).ready(function(){
+        if(document.cookie != ""){
+          window.location.href = "/";
+        }
+      });
+
       $(document).ready(function() {
           $('#loginButton').click(function(e) {
               e.preventDefault();

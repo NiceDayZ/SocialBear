@@ -1,7 +1,12 @@
+<!DOCTYPE html>
 <html>
 	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+
 		<title>SocialBear</title>
 		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="css/profile.css" />
 		<link rel="stylesheet" href="css/home.css" />
 		<link rel="stylesheet" href="css/post.css" />
 		<link rel="stylesheet" href="css/widget.css" />
@@ -59,6 +64,17 @@
 		<div class="feed">
             <br/><br/>
 			<div class="posts">
+				<div class="post post_form" style="padding:0;">
+                    <div id="description" contenteditable="true">Description</div>
+					<div id="imageURL" contenteditable="true">Image URL</div>
+					<div contenteditable="false">
+                        <input type="checkbox" value="1" name="r1" id="r1" checked="checked"/>
+						<label class="whatever" for="r1">Private</label>
+					</div>
+					
+					
+                    <button id="post_button" class="post_form_submit"></button>
+                </div>
 				<div class="post">
 					<img class="profile_pic" src="img/profile/1.jpg" />
 					<a href="/profiles/1mh234" >Full Name</a>
@@ -180,5 +196,57 @@
 				<h2>Full Name</h2>
 			</div>
 		</div>
+		<script src="js/jquery.js"></script>
+		<script>
+
+$(window).load(function() { 
+   $("img").each(function(){ 
+      var image = $(this); 
+      if(image.context.naturalWidth == 0 || image.readyState == 'uninitialized'){  
+         $(image).unbind("error").hide();
+      } 
+   }); 
+});
+
+			$(document).ready(function() {
+				$('#description').click(function(e){
+					$('#description').text("");
+				});
+				$('#imageURL').click(function(e){
+					$('#imageURL').text("");
+				});
+			});
+
+			$(document).ready(function() {
+          		$('#post_button').click(function(e) {
+					e.preventDefault();
+					if($('#description').text() == "" || $('#description').text() == "Description"){
+						alert("Description can not be null");
+					}else{
+						var imgURL;
+						if($('#imageURL').text() == "Image URL"){
+							imgURL = "";
+						}else{
+							imgURL = $('#imageURL').text();
+						}
+					$.ajax({
+						type: 'POST',
+						dataType: "text",
+						url: '/postare',
+						data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'},
+						success: function(data)
+						{
+							if(data == "success"){
+							window.location.href = "/";
+							}else{
+							alert("Invalid credentials");
+							}
+							
+						}
+             		 });
+					}
+          });
+		});
+		</script>
 	</body>
 </html>
