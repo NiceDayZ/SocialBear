@@ -84,7 +84,7 @@
 					Loremp impsus is a generated random text. 
 					Loremp impsus is a generated random text. 
 					Loremp impsus is a generated random text. 
-					<img src="https://cdn.pixabay.com/photo/2018/01/14/23/12/nature-3082832__340.jpg" class="post_image" /> 
+					<img src="https://cdn.pixabay.com/photo/2018/01/14/2/12/nature-3082832__340.jpg" class="post_image" /> 
 					<hr/>
 					<button class="button like right">999</button>
 					<button class="button ac_share right">23</button>
@@ -196,17 +196,19 @@
 				<h2>Full Name</h2>
 			</div>
 		</div>
-		<script src="js/jquery.js"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 		<script>
 
-$(window).load(function() { 
-   $("img").each(function(){ 
-      var image = $(this); 
-      if(image.context.naturalWidth == 0 || image.readyState == 'uninitialized'){  
-         $(image).unbind("error").hide();
-      } 
-   }); 
-});
+			$(window).on('load',function() { 
+			$("img").each(function(){ 
+				var image = $(this);
+				//console.log(this.naturalWidth);
+				if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){
+					console.log(image);
+					$(image).unbind("error").hide();
+				} 
+			}); 
+			});
 
 			$(document).ready(function() {
 				$('#description').click(function(e){
@@ -222,29 +224,32 @@ $(window).load(function() {
 					e.preventDefault();
 					if($('#description').text() == "" || $('#description').text() == "Description"){
 						alert("Description can not be null");
+					}else if(!$('#imageURL').text().includes("http://") && !$('#imageURL').text().includes("https://") && !($('#imageURL').text() == "Image URL") && !($('#imageURL').text() == "")){
+						alert("Invalid image URL");
 					}else{
 						var imgURL;
-						if($('#imageURL').text() == "Image URL"){
-							imgURL = "";
+						if($('#imageURL').text() == "Image URL" || $('#imageURL').text() == ""){
+							imgURL = "https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg";
 						}else{
 							imgURL = $('#imageURL').text();
 						}
-					$.ajax({
-						type: 'POST',
-						dataType: "text",
-						url: '/postare',
-						data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'},
-						success: function(data)
-						{
-							if(data == "success"){
-							window.location.href = "/";
-							}else{
-							alert("Invalid credentials");
+						$.ajax({
+							type: 'POST',
+							dataType: "text",
+							url: '/postare',
+							data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'},
+							success: function(data)
+							{
+								if(data == "success"){
+								window.location.href = "/";
+								}else{
+								alert("There was an error while posting your post");
+								}
+								
 							}
-							
-						}
-             		 });
+						});
 					}
+				
           });
 		});
 		</script>
