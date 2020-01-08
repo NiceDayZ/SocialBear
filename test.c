@@ -183,7 +183,7 @@ char* personalizedFeedPageMaker(char *cookie){
 
         //Feed for existing user
 
-        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie);
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
         sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c) order by p.posted_date desc LIMIT 100;", cookie[0], cookie[0], cookie[0]);
@@ -288,8 +288,87 @@ char* personalizedFeedPageMaker(char *cookie){
     
 }
 
+//Edit profile page
+ char* personalizedEditPageMaker(char* edit,char* cookie){
+
+        char file_buff[MAX_LEN] = {0};
+        char head[5000] = {0};
+        char bottom [5000] = {0};
+        char responce[MAX_LEN] = {0};
+        char formInfo[5000] = {0};
+        char *resp;
+
+        sqlite3 *db;
+        char *err_msg = 0;
+        
+        int rc = sqlite3_open("ceva.db", &db);
+        
+        if (rc != SQLITE_OK) {
+            
+            fprintf(stderr, "Cannot open database: %s\n", 
+                    sqlite3_errmsg(db));
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+        
+        
+        char sqlQuerry[1000] = {0};
+        sprintf(sqlQuerry, "SELECT nume, prenume, profile_img, cover_url FROM users WHERE token = '%s'", edit);
+
+        //printf("Nu crapa pana aici \n");
+
+        char returnedString[100] = {0};
+        rc = sqlite3_exec(db, sqlQuerry, callbackProfilePage, returnedString, &err_msg);
+
+       
+
+        char* pch = NULL;
+        char tokens[4][128] = {0};
+        pch = strtok(returnedString, "|");
+        int i = 0;
+        while (pch != NULL){
+            strcat(tokens[i], pch);         
+            pch = strtok(NULL, "|");
+            ++i;
+        }
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0],tokens[3],tokens[2],tokens[1],tokens[0]);
+        strcat(head, "</center> </div> </div> <div class=\"feed\"> <div class=\"posts\">");
+        
+        sprintf(formInfo, "<div class=\"post post_form\" style=\"padding:0;\"> <div contenteditable=\"false\">New First Name <div id=\"firstName\" contenteditable=\"true\">%s</div></div> <div contenteditable=\"false\">New Last Name <div id=\"lastName\" contenteditable=\"true\">%s</div></div> <div contenteditable=\"false\">Cover Image <div id=\"coverURL\" contenteditable=\"true\">%s</div></div> <div contenteditable=\"false\">Profile Picture <div id=\"profileURL\" contenteditable=\"true\">%s</div></div> <button id=\"updateProfileButton\" class=\"post_form_submit\"></button> </div>", tokens[1], tokens[0], tokens[3], tokens[2]);
+
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script>");
+        strcat(bottom, "<script>if(document.cookie == \"\" || document.cookie != (\"token=\" + location.href.substr(location.href.lastIndexOf('/') + 1))){ window.location.href = \"/\"; } $(document).ready(function() { $('#updateProfileButton').click(function(e) { e.preventDefault(); if( !$('#profileURL').text().includes(\"http://\") && !$('#profileURL').text().includes(\"https://\") && !$('#profileURL').text().includes(\"img/profile/1.png\") && !$('#coverURL').text().includes(\"https://\") && !$('#coverURL').text().includes(\"http://\") && !$('#coverURL').text().includes(\"img/cover/Wallpaper-Macbook.jpg\")){ alert(\"Invalid image URL\"); }else{ $.ajax({ type: 'PUT', dataType: \"text\", url: '/updateProfile', data: {firstName: $('#firstName').text(), lastName: $('#lastName').text(), coverURL: $('#coverURL').text(), profileURL: $('#profileURL').text()}, success: function(data) { if(data == \"success\"){ location.reload(); }else{ console.log(data); alert(\"There was an error while updating your profile\"); } } }); } }); }); </script>");
+        strcat(bottom, "</body> </html>");
+
+        sprintf(file_buff, "%s%s%s", head, formInfo, bottom);
+        
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+
+        
+        sqlite3_close(db);
+        
+        resp = responce;
+        return resp;
+
+} 
+
 char* personalizedSearchPageMaker(char* search,char* cookie){
-    char file_buff[MAX_LEN] = {0};
+        char file_buff[MAX_LEN] = {0};
         char head[5000] = {0};
         char posts[MAX_LEN] = {0};
         char bottom [5000] = {0};
@@ -429,7 +508,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
 
         //Search for existing user
 
-        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>", cookie);
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
         sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c)) order by p.posted_date desc LIMIT 100;",search, cookie[0], cookie[0], cookie[0]);
@@ -690,7 +769,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         }
         
         if(cookie != NULL)
-            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id = \"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0], cookie, tokens[3],tokens[2],tokens[1],tokens[0]);
+            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id = \"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0], cookie, cookie, tokens[3],tokens[2],tokens[1],tokens[0]);
         else{
             sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0],tokens[3],tokens[2],tokens[1],tokens[0]);
         }
@@ -862,15 +941,15 @@ void response_generator (int conn_fd, char *filename) {
     /* vars needed for finding the length of the file */
     //struct stat filestat;
     
-    char header_buff [2048];
+    char header_buff [4096];
     char file_buff [MAX_LEN];
-    char filesize[20];
+    char filesize[40];
 
     header_buff[0] = '\0';
     file_buff[0] = '\0';
     filesize[0] = '\0';
 
-     
+    
 
     if (filename == NULL) {
         strcpy (header_buff, "HTTP/1.1 400 Bad Request\r\nContent-Length: 0\r\nContent-Type: text/html\r\n");
@@ -1207,6 +1286,90 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
     
 }
 
+void put_response_generator(int conn_fd, char* requestPage, char* requestHead, char* cookiezy){
+    printf("put\n");
+    printf("%s\n", requestHead);
+
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("Database Error");
+    }
+
+    if(strcmp(requestPage, "updateProfile") == 0){
+        char updateName[128] = {0};
+        char updatePreName[128] = {0};
+        char updateImageURL[1024] = {0};
+        char decodedImageURL[1024] = {0};
+        char updateCoverURL[1024] = {0};
+        char decodedCoverURL[1024] = {0};
+
+        
+        char responce[1024] = {0};
+
+       
+
+        char* pch = NULL;
+        pch = strtok(requestHead, "&");
+
+        while (pch != NULL)
+        {
+            if(strstr(pch, "firstName=") != 0){
+                strcpy(updatePreName, pch + 10);
+            }else if(strstr(pch, "lastName=") != 0){
+                strcpy(updateName, pch + 9);
+            }else if(strstr(pch, "coverURL=") != 0){
+                strcpy(updateCoverURL, pch + 9);
+                URIdecode(updateCoverURL, decodedCoverURL);
+            }else if(strstr(pch, "profileURL=") != 0){
+                strcpy(updateImageURL, pch + 11);
+                URIdecode(updateImageURL, decodedImageURL);
+            }
+            pch = strtok(NULL, "&");
+
+        }
+
+        char sqlUpdate[1000] = {0};
+
+        sprintf(sqlUpdate, "UPDATE users SET nume='%s', prenume='%s', profile_img='%s', cover_url='%s' WHERE user_id=%c", updateName, updatePreName, decodedImageURL, decodedCoverURL, cookiezy[0]);
+        
+        printf("%s\n", sqlUpdate);
+        
+        rc = sqlite3_exec(db, sqlUpdate, 0, 0, &err_msg);
+
+        if (rc != SQLITE_OK ) {
+            strcpy(responce, "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfail");
+            printf("%s\n%s\n", sqlUpdate, err_msg);
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+        }else{
+            strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nsuccess");
+        }
+
+        int writeError;
+        if((writeError = write (conn_fd, responce, strlen(responce))) < 0){
+            pthread_exit("crepat");
+        }
+
+        sqlite3_close(db);
+
+        updateName[0] = '\0';
+        updatePreName[0] = '\0';
+        updateImageURL[0] = '\0';
+        decodedImageURL[0] = '\0';
+        updateCoverURL[0] = '\0';
+        decodedCoverURL[0] = '\0';
+    }
+} 
+
 int main ()
 {
   struct sockaddr_in server;	// structura folosita de server
@@ -1351,6 +1514,23 @@ void parsingPath(int new_socket, char* path, char* cookie){
         }
         search[0] = '\0';
     
+    }else if(strstr(path, "edit/")){
+        //printf("Profiles page\n");
+        char* edit = strstr(path, "edit/") + 5;
+        //
+         
+        if((strstr(path, "edit/img/") == 0) && (strstr(path, "edit/css/")== 0) && (strstr(path, "edit/js/")== 0)){
+           
+            //TODO: personalised profile 
+            strcat(file_buff, personalizedEditPageMaker(edit, cookie));
+           
+            write (new_socket, file_buff, strlen(file_buff));
+        }
+        else{
+            response_generator(new_socket, edit);
+        }
+        edit[0] = '\0';
+    
     }else if(strcmp(path, "login") == 0){
         response_generator(new_socket, "login.html");
     
@@ -1413,6 +1593,8 @@ void raspunde(void *arg)
                 }
             }else if(strstr(buffer, "POST ") != 0){
                 post_response_generator(new_socket, path, strstr(bufferCopy, "\r\n\r\n") + 4, cookie);
+            }else if(strstr(buffer, "PUT ") != 0){
+                put_response_generator(new_socket, path, strstr(bufferCopy, "\r\n\r\n") + 4, cookie);
             }
                 //response_generator (new_socket, path);
         }

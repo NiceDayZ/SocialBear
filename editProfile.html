@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+		<meta content="utf-8" http-equiv="encoding">
+		<title>My profile</title>
+        <meta id="meta" name="viewport" content="width=device-width; initial-scale=1.0" />
+        <meta id="meta" name="viewport" content="width=device-width; initial-scale=1.0" />
+		<link rel="stylesheet" href="css/reset.css" />
+		<link rel="stylesheet" href="css/home.css" />
+		<link rel="stylesheet" href="css/profile.css" />
+		<link rel="stylesheet" href="css/post.css" />
+		<link rel="stylesheet" href="css/widget.css" />
+		<link rel="stylesheet" href="css/menu.css" />
+		<link rel="stylesheet" href="css/chat.css" />
+	</head>
+	<body>
+	
+		<header>
+			<img src="img/header/menu-button.png" class="menu_img"/>
+			<img src="img/header/SocialBear.png" class="logo"/>
+			
+			<input type="search" placeholder="Search" />
+			<img src="img/header/conversation-speech-bubbles-.png" class="nav"/>
+		</header>
+		<div class="menu">
+			<div class="menu_element">
+				<img src="img/header/history-clock-button.png" class="element_image" />
+				<h2>Menu title</h2>
+			</div>
+			<div class="menu_element">
+				<img src="img/header/settings-cogwheel-button.png" class="element_image" />
+				<h2>Menu title</h2>
+			</div>
+			<div class="menu_element">
+				<img src="img/header/ellipsis.png" class="element_image" />
+				<h2>Menu title</h2>
+			</div>
+		</div>
+		<div class="profile" style="background-image:url(../img/cover/Wallpaper-Macbook.jpg);">
+			<div class="sub_profile">
+				<center>
+					<img src="img/profile/1.jpg" class="profile_pic" /><br/>
+					<h2>Mihai Craciun</h2><br/>
+				</center>
+			</div>
+		</div>
+		<div class="feed">
+			<div class="posts">
+                <div class="post post_form" style="padding:0;">
+                    <div contenteditable="false">New First Name <div id="firstName" contenteditable="true">Mihai</div></div>
+                    <div contenteditable="false">New Last Name <div id="lastName" contenteditable="true">Craciun</div></div>
+                    <div contenteditable="false">Cover Image <div id="coverURL" contenteditable="true">Cover Image</div></div>
+                    <div contenteditable="false">Profile Picture <div id="profileURL" contenteditable="true">Profile Picture</div></div>
+                    <button id="updateProfileButton" class="post_form_submit"></button>
+                </div>
+            </div>
+        </div>
+	<script src="js/jquery.js"></script>
+	<script>
+        
+        if(document.cookie == "" || document.cookie != ("token=" + location.href.substr(location.href.lastIndexOf('/') + 1))){
+            window.location.href = "/";
+        }
+
+		 $(document).ready(function() {
+          		$('#updateProfileButton').click(function(e) {
+						e.preventDefault();
+                        if( !$('#profileURL').text().includes("http://") && !$('#profileURL').text().includes("https://") && !$('#profileURL').text().includes("img/profile/1.png") 
+                            && !$('#coverURL').text().includes("https://") && !$('#coverURL').text().includes("http://") && !$('#coverURL').text().includes("img/cover/Wallpaper-Macbook.jpg")){
+						    alert("Invalid image URL");
+                        }else{
+                            $.ajax({
+                                type: 'PUT',
+                                dataType: "text",
+                                url: '/updateProfile',
+                                data: {firstName: $('#firstName').text(), lastName: $('#lastName').text(), coverURL: $('#coverURL').text(), profileURL: $('#profileURL').text()},
+                                success: function(data)
+                                {
+                                    if(data == "success"){
+                                    	location.reload();
+                                    }else{
+                                    	console.log(data);
+                                    	alert("There was an error while updating your profile");
+                                    }
+                                    
+                                }
+                            });
+                  }
+				
+          });
+		}); 
+	</script>
+	</body>
+</html>
