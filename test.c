@@ -116,7 +116,7 @@ char* personalizedFeedPageMaker(char *cookie){
 
     if(cookie == NULL){
         printf("Feed for non existend user\n");
-        strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
+        strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
         
         char sqlQuerryForPosts[1000] = {0};
         strcat(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100");
@@ -167,7 +167,7 @@ char* personalizedFeedPageMaker(char *cookie){
             singularPost[0] = '\0';
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"> </script> <script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"> </script> <script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } });</script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -183,7 +183,7 @@ char* personalizedFeedPageMaker(char *cookie){
 
         //Feed for existing user
 
-        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie);
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie);
         
         char sqlQuerryForPosts[1000] = {0};
         sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c) order by p.posted_date desc LIMIT 100;", cookie[0], cookie[0], cookie[0]);
@@ -272,7 +272,7 @@ char* personalizedFeedPageMaker(char *cookie){
             }
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script> $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -286,6 +286,298 @@ char* personalizedFeedPageMaker(char *cookie){
         return resp;
     }
     
+}
+
+char* personalizedSearchPageMaker(char* search,char* cookie){
+    char file_buff[MAX_LEN] = {0};
+        char head[5000] = {0};
+        char posts[MAX_LEN] = {0};
+        char bottom [5000] = {0};
+        char responce[MAX_LEN] = {0};
+        char *resp;
+
+
+        sqlite3 *db;
+        char *err_msg = 0;
+        
+        int rc = sqlite3_open("ceva.db", &db);
+        
+        if (rc != SQLITE_OK) {
+            
+            fprintf(stderr, "Cannot open database: %s\n", 
+                    sqlite3_errmsg(db));
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+    if(cookie == NULL){
+        printf("Search for non existend user\n");
+        strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
+        
+        char sqlQuerryForPosts[1000] = {0};
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 AND p.description LIKE '%%%s%%' ORDER BY p.posted_date DESC LIMIT 100", search);
+        
+        char returnedPosts[MAX_LEN] = {0};
+        rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg); 
+
+
+        char sqlQuerryForUsers[1000] = {0};
+        sprintf(sqlQuerryForUsers, "select nume, prenume, profile_img, token from users where nume LIKE '%%%s%%' or prenume LIKE '%%%s%%'", search, search);
+        
+        char returnedUsers[MAX_LEN] = {0};
+        int rc2 = sqlite3_exec(db, sqlQuerryForUsers, callbackProfilePosts, returnedUsers, &err_msg); 
+
+        
+
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+        if (rc2 != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+        sqlite3_close(db);
+
+
+        char* pch3 = NULL;
+        char usersReturned[105][2050] = {0};
+        pch3 = strtok(returnedUsers, "~");
+        int index = 0;
+        while (pch3 != NULL){
+            strcat(usersReturned[index], pch3);         
+            pch3 = strtok(NULL, "~");
+            ++index;
+        }
+
+        for(int j = 0; j < index; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[4][1025] = {0};
+            postTab = strtok(usersReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a><hr/> </div>",
+            tokensForPost[2], tokensForPost[3], tokensForPost[1], tokensForPost[0]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
+
+
+        char* pch2 = NULL;
+        char postsReturned[105][2050] = {0};
+        pch2 = strtok(returnedPosts, "~");
+        int i = 0;
+        while (pch2 != NULL){
+            strcat(postsReturned[i], pch2);         
+            pch2 = strtok(NULL, "~");
+            ++i;
+        }
+
+        for(int j = 0; j < i; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[8][1025] = {0};
+            postTab = strtok(postsReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
+        
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"> </script> <script>$('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); </script> </body> </html>");
+        
+        sprintf(file_buff, "%s%s%s", head,posts,bottom);
+        
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+
+        resp = responce;
+        return resp;
+
+
+    }else{
+
+        //Search for existing user
+
+        sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>", cookie);
+        
+        char sqlQuerryForPosts[1000] = {0};
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c)) order by p.posted_date desc LIMIT 100;",search, cookie[0], cookie[0], cookie[0]);
+        
+        char returnedPosts[MAX_LEN] = {0};
+        rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
+
+        char sqlQuerryForUsers[1000] = {0};
+        sprintf(sqlQuerryForUsers, "select nume, prenume, profile_img, token from users where nume LIKE '%%%s%%' or prenume LIKE '%%%s%%'", search, search);
+        
+        char returnedUsers[MAX_LEN] = {0};
+        int rc2 = sqlite3_exec(db, sqlQuerryForUsers, callbackProfilePosts, returnedUsers, &err_msg); 
+
+        
+
+        if (rc != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+        if (rc2 != SQLITE_OK ) {
+            
+            fprintf(stderr, "Failed to select data\n");
+            fprintf(stderr, "SQL error: %s\n", err_msg);
+
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+        sqlite3_close(db);
+
+
+        char* pch3 = NULL;
+        char usersReturned[105][2050] = {0};
+        pch3 = strtok(returnedUsers, "~");
+        int index = 0;
+        while (pch3 != NULL){
+            strcat(usersReturned[index], pch3);         
+            pch3 = strtok(NULL, "~");
+            ++index;
+        }
+
+        for(int j = 0; j < index; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[4][1025] = {0};
+            postTab = strtok(usersReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a><hr/> </div>",
+            tokensForPost[2], tokensForPost[3], tokensForPost[1], tokensForPost[0]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
+
+        char* pch2 = NULL;
+        char postsReturned[105][2050] = {0};
+        pch2 = strtok(returnedPosts, "~");
+        int i = 0;
+        while (pch2 != NULL){
+            strcat(postsReturned[i], pch2);         
+            pch2 = strtok(NULL, "~");
+            ++i;
+        }
+
+        for(int j = 0; j < i; j++){
+            char singularPost[2050] = {0};
+            char* postTab = NULL;
+            char tokensForPost[8][1025] = {0};
+            postTab = strtok(postsReturned[j], "|");
+            int k = 0;
+            while (postTab != NULL){
+                strcat(tokensForPost[k], postTab);         
+                postTab = strtok(NULL, "|");
+                k++;
+            }
+           
+            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            strcat(posts, singularPost);
+
+            singularPost[0] = '\0';
+        }
+
+        
+        if((100 - i) > 0){
+            char sqlQuerryForPosts2[1000] = {0};
+            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %c) order by p.posted_date desc LIMIT 100-%d;", search, cookie[0], i);
+
+            char returnedPosts2[MAX_LEN] = {0};
+            rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
+
+            char* pch3 = NULL;
+            char postsReturned2[105][2050] = {0};
+            pch3 = strtok(returnedPosts2, "~");
+            int ii = 0;
+            while (pch3 != NULL){
+                strcat(postsReturned2[ii], pch3);         
+                pch3 = strtok(NULL, "~");
+                ++ii;
+            }
+
+            for(int j = 0; j < ii; j++){
+                char singularPost[2050] = {0};
+                char* postTab = NULL;
+                char tokensForPost[8][1025] = {0};
+                postTab = strtok(postsReturned2[j], "|");
+                int k = 0;
+                while (postTab != NULL){
+                    strcat(tokensForPost[k], postTab);         
+                    postTab = strtok(NULL, "|");
+                    k++;
+                }
+            
+                sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+                tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+                strcat(posts, singularPost);
+
+                singularPost[0] = '\0';
+            }
+        }
+        
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload(); }); </script> </body> </html>");
+        
+        sprintf(file_buff, "%s%s%s", head,posts,bottom);
+        
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+
+        resp = responce;
+
+        sqlite3_close(db);
+        return resp;
+    }
 }
 
 //PROFILE PAGE TAG
@@ -398,9 +690,9 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         }
         
         if(cookie != NULL)
-            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id = \"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0], cookie, tokens[3],tokens[2],tokens[1],tokens[0]);
+            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> <div id = \"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0], cookie, tokens[3],tokens[2],tokens[1],tokens[0]);
         else{
-            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0],tokens[3],tokens[2],tokens[1],tokens[0]);
+            sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0],tokens[3],tokens[2],tokens[1],tokens[0]);
         }
 
         if(cookie != NULL && cookie[0] != profile[0]){
@@ -802,9 +1094,9 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
         char imgURL[1024] ={0};
         char decodedImgURL[1024] = {0};
         char private[3] = {0};
-        char responce[MAX_LEN] = {0};
+        char responce[1024] = {0};
 
-       // printf("\n\n req head: %s\n", requestHead);
+        printf("\n\n req head: %s\n", requestHead);
 
         char* pch = NULL;
         pch = strtok(requestHead, "&");
@@ -828,7 +1120,7 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
        
 
         char sqlInsert[1000] = {0};
-        sprintf(sqlInsert, "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (%c, %c, '%d-%02d-%02d %02d:%02d:%02d', '%s', '%s')",
+        sprintf(sqlInsert, "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (%c, %c, '%d-%02d-%02d %02d:%02d:%02d', '%s', '%s');",
         cookiezy[0], private[0], tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, decodedImgURL, decodedDescription);
 
         rc = sqlite3_exec(db, sqlInsert, 0, 0, &err_msg);
@@ -1042,6 +1334,22 @@ void parsingPath(int new_socket, char* path, char* cookie){
             response_generator(new_socket, profile);
         }
         profile[0] = '\0';
+    
+    }else if(strstr(path, "search/")){
+        //printf("Profiles page\n");
+        char* search = strstr(path, "search/") + 7;
+        //
+         
+        if((strstr(path, "search/img/") == 0) && (strstr(path, "search/css/")== 0) && (strstr(path, "search/js/")== 0)){
+            //TODO: personalised profile 
+            strcat(file_buff, personalizedSearchPageMaker(search, cookie));
+            
+            write (new_socket, file_buff, strlen(file_buff));
+        }
+        else{
+            response_generator(new_socket, search);
+        }
+        search[0] = '\0';
     
     }else if(strcmp(path, "login") == 0){
         response_generator(new_socket, "login.html");

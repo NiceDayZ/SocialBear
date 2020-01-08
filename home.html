@@ -19,7 +19,7 @@
 			<img src="img/header/menu-button.png" class="menu_img"/>
 			<img src="img/header/SocialBear.png" class="logo"/>
 			
-			<input type="search" placeholder="Search" />
+			<input id="searchBar" type="search" placeholder="Search" />
 			
 			<img src="img/header/user-shape.png" class="nav"/>
 			<img src="img/header/notifications-button.png" class="nav"/>
@@ -213,6 +213,12 @@
 				if(document.cookie == ""){
 					$("#myprofile").hide();
 				}
+			});
+
+			$('#searchBar').on('keypress',function(e) {
+    			if(e.which == 13) {
+        			window.location.href = "/search/" + $('#searchBar').val();
+    			}
 			});
 
 			$(document).ready(function() {
