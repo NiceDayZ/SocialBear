@@ -42,7 +42,7 @@
 				<center>
 					<img src="img/profile/1.jpg" class="profile_pic" /><br/>
 					<h2>Mihai Craciun</h2><br/>
-					<button class="btn_follow">Follow</button>
+					<button id="followButton" class="btn_follow">Follow</button>
 					<button>Message</button>
 				</center>
 			</div>
@@ -83,5 +83,29 @@
 			</div>
 		</div>
 	<script src="js/jquery.js"></script>
+	<script>
+		$(document).ready(function() {
+          		$('#followButton').click(function(e) {
+						e.preventDefault();
+						$.ajax({
+							type: 'POST',
+							dataType: "text",
+							url: '/prieteni',
+							data: {userId: location.href.substr(location.href.lastIndexOf('/') + 1)},
+							success: function(data)
+							{
+								if(data == "success"){
+								window.location.href = "/";
+								}else{
+								alert("There was an error while posting your post");
+								}
+								
+							}
+						});
+					
+				
+          });
+		});
+	</script>
 	</body>
 </html>

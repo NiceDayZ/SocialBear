@@ -28,7 +28,7 @@
 			<img src="img/header/musica-searcher.png" class="nav_s"/>
 		</header>
 		<div class="menu">
-			<div class="menu_element">
+			<div class="menu_element" id="myprofile">
 				<img src="img/header/history-clock-button.png" class="element_image" />
 				<h2>Menu title</h2>
 			</div>
@@ -56,7 +56,7 @@
 				<img src="img/header/birthday-cake.png" class="element_image" />
 				<h2>Menu title</h2>
 			</div>
-			<div class="menu_element">
+			<div class="menu_element" id = "logoutButton">
 				<img src="img/header/ellipsis.png" class="element_image" />
 				<h2>Menu title</h2>
 			</div>
@@ -198,16 +198,21 @@
 		</div>
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 		<script>
-
+			
+			
 			$(window).on('load',function() { 
-			$("img").each(function(){ 
-				var image = $(this);
-				//console.log(this.naturalWidth);
-				if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){
-					console.log(image);
-					$(image).unbind("error").hide();
-				} 
-			}); 
+				$("img").each(function(){ 
+					var image = $(this);
+					//console.log(this.naturalWidth);
+					if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){
+						console.log(image);
+						$(image).unbind("error").hide();
+					} 
+				});
+
+				if(document.cookie == ""){
+					$("#myprofile").hide();
+				}
 			});
 
 			$(document).ready(function() {
@@ -217,6 +222,11 @@
 				$('#imageURL').click(function(e){
 					$('#imageURL').text("");
 				});
+			});
+
+			$("#logoutButton").click(function(e){
+				document.cookie = "token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT";
+				window.location.href = "/";
 			});
 
 			$(document).ready(function() {
