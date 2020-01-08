@@ -1197,10 +1197,13 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
         time_t t = time(NULL);
         struct tm tm = *localtime(&t);
        
+       printf("A picat dupa time declaration\n");
 
         char sqlInsert[1000] = {0};
         sprintf(sqlInsert, "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (%c, %c, '%d-%02d-%02d %02d:%02d:%02d', '%s', '%s');",
         cookiezy[0], private[0], tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, decodedImgURL, decodedDescription);
+
+        printf("A picat dupa time use\n");
 
         rc = sqlite3_exec(db, sqlInsert, 0, 0, &err_msg);
     
