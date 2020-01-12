@@ -186,7 +186,7 @@ char* personalizedFeedPageMaker(char *cookie){
         sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
-        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c) order by p.posted_date desc LIMIT 100;", cookie[0], cookie[0], cookie[0]);
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d) order by p.posted_date desc LIMIT 100;", atoi(cookie), atoi(cookie), atoi(cookie));
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
@@ -237,7 +237,7 @@ char* personalizedFeedPageMaker(char *cookie){
         
         if((100 - i) > 0){
             char sqlQuerryForPosts2[1000] = {0};
-            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %c order by p.posted_date desc LIMIT 100-%d;", cookie[0], i);
+            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d order by p.posted_date desc LIMIT 100-%d;", atoi(cookie), i);
 
             char returnedPosts2[MAX_LEN] = {0};
             rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
@@ -511,7 +511,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/user-shape.png\" id=\"profileBubble\" class=\"nav\"/> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
-        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %c or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %c) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %c)) order by p.posted_date desc LIMIT 100;",search, cookie[0], cookie[0], cookie[0]);
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d)) order by p.posted_date desc LIMIT 100;",search, atoi(cookie), atoi(cookie), atoi(cookie));
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
@@ -609,7 +609,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         
         if((100 - i) > 0){
             char sqlQuerryForPosts2[1000] = {0};
-            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %c) order by p.posted_date desc LIMIT 100-%d;", search, cookie[0], i);
+            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d) order by p.posted_date desc LIMIT 100-%d;", search, atoi(cookie), i);
 
             char returnedPosts2[MAX_LEN] = {0};
             rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
@@ -719,7 +719,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         if(cookie == NULL){
             sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100", profile);
         }else{
-            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 UNION select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 1 AND (EXISTS(SELECT * FROM prieteni WHERE (id_user = %c and id_friend = %c)) OR p.user_id = %c) ORDER BY p.posted_date DESC LIMIT 100", profile, profile, cookie[0], profile[0], cookie[0]);
+            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 UNION select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 1 AND (EXISTS(SELECT * FROM prieteni WHERE (id_user = %d and id_friend = %d)) OR p.user_id = %d) ORDER BY p.posted_date DESC LIMIT 100", profile, profile, atoi(cookie), atoi(profile), atoi(cookie));
 
         }
         char returnedPosts[MAX_LEN] = {0};
@@ -774,10 +774,10 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
             sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>%s's profile</title> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <meta id=\"meta\" name=\"viewport\" content=\"width=device-width; initial-scale=1.0\" /> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <img src=\"img/header/conversation-speech-bubbles-.png\" class=\"nav\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <!--Cover img--> <div class=\"profile\" style=\"background-image:url(%s);\"> <div class=\"sub_profile\"> <center> <!--profile pic--> <img src=\"%s\" class=\"profile_pic\" /><br/> <!--Name--> <h2>%s %s</h2><br/> ", tokens[0],tokens[3],tokens[2],tokens[1],tokens[0]);
         }
 
-        if(cookie != NULL && cookie[0] != profile[0]){
+        if(cookie != NULL && atoi(cookie) != atoi(profile)){
             char sqlFriend[100] = {0};
             char sqlRespFriend[100] = {0};
-            sprintf(sqlFriend, "SELECT * FROM prieteni where id_user = %c and id_friend = %c;", cookie[0], profile[0]);
+            sprintf(sqlFriend, "SELECT * FROM prieteni where id_user = %d and id_friend = %d;", atoi(cookie), atoi(profile));
 
             rc = sqlite3_exec(db, sqlFriend, callbackFriend, sqlRespFriend, &err_msg);
             if(strlen(sqlRespFriend) > 0){
@@ -789,7 +789,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         strcat(head, "</center> </div> </div> <div class=\"feed\"> <div class=\"posts\">");
         
 
-        if(cookie != NULL && cookie[0] == profile[0]){
+        if(cookie != NULL && atoi(cookie) == atoi(profile)){
             strcat(head, "<div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>");
         }
        
@@ -797,7 +797,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
 
         strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script>");
         
-        if(cookie != NULL && cookie[0] == profile[0]){
+        if(cookie != NULL && atoi(cookie) == atoi(profile)){
             strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script>");
         }else if(cookie != NULL){
             strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#followButton').click(function(e) { e.preventDefault(); $.ajax({ type: 'POST', dataType: \"text\", url: '/prieteni', data: {userId: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ location.reload(); }else{ alert(\"Could not establish friendship\"); } } }); }); });</script>");
@@ -810,6 +810,157 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
+        long resp_size = strlen(file_buff);
+
+        sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
+        
+        resp = responce;
+        sqlite3_close(db);
+        
+        return resp;
+}
+
+char* personalizedMessagePageMaker(char* cookie){
+
+    char file_buff[MAX_LEN] = {0};
+    char head[5000] = {0};
+    char people[5000] = {0};
+    char messages[MAX_LEN] = {0};
+    char bottom [15000] = {0};
+    char responce[MAX_LEN] = {0};
+    char *resp;
+
+    char returnedUsers[MAX_LEN] = {0};
+
+    strcat(head, "<!DOCTYPE html> <html > <head> <meta charset=\"UTF-8\"> <title>chat</title> <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css\"> <link rel=\"stylesheet\" href=\"css/chat2.css\"> </head> <body> <div class=\"wrapper\"> <div class=\"container\">");
+    strcat(bottom, "</div> </div> <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> <script src=\"js/chat.js\"></script> </body> </html>");
+
+
+    sqlite3 *db;
+        char *err_msg = 0;
+        
+        int rc = sqlite3_open("ceva.db", &db);
+        
+        if (rc != SQLITE_OK) {
+            
+            fprintf(stderr, "Cannot open database: %s\n", 
+                    sqlite3_errmsg(db));
+            sqlite3_close(db);
+            
+            pthread_exit("O crepat la baza de date");
+        }
+
+    char sqlQuerryForUsers[2000] = {0} ;
+    
+    sprintf(sqlQuerryForUsers, "select user_id, nume, prenume, token, profile_img from users where user_id <> %d and exists (select * from mesaj where (id_from = user_id and id_touser = %d) or (id_from = %d and id_touser = user_id)) LIMIT 100", atoi(cookie), atoi(cookie), atoi(cookie));
+    
+    rc = sqlite3_exec(db, sqlQuerryForUsers, callbackProfilePosts, returnedUsers, &err_msg); 
+
+    //printf("%s\n", returnedUsers);
+    
+    char* pch2 = NULL;
+    char usersReturned[105][2050] = {0};
+    pch2 = strtok(returnedUsers, "~");
+    int i = 0;
+    while (pch2 != NULL){
+        strcat(usersReturned[i], pch2);         
+        pch2 = strtok(NULL, "~");
+        ++i;
+    }
+
+    char userIdsInOrder[200][5] = {0};
+    char tokensInOrder[200][128] = {0};
+    strcat(people, "<div class=\"left\" style=\"overflow-y: scroll; overflow-x: hidden;\"> <ul class=\"people\">");
+    
+    for(int j = 0; j < i; j++){
+        char singularUser[2050] = {0};
+        char* userTab = NULL;
+        char tokensForUser[5][1025] = {0};
+        userTab = strtok(usersReturned[j], "|");
+        int k = 0;
+        while (userTab != NULL){
+            strcat(tokensForUser[k], userTab);         
+            userTab = strtok(NULL, "|");
+            k++;
+        }
+        
+        strcat(userIdsInOrder[j], tokensForUser[0]);
+        strcat(tokensInOrder[j], tokensForUser[3]);
+
+        sprintf(singularUser, "<li class=\"person\" data-chat=\"%s\"> <img src=\"%s\" alt=\"%s%s\" /> <span class=\"name\">%s%s</span> </li>",
+        tokensForUser[3], tokensForUser[4], tokensForUser[2], tokensForUser[1], tokensForUser[2], tokensForUser[1]);
+        strcat(people, singularUser);
+
+        singularUser[0] = '\0';
+    }
+
+        strcat(people, "</ul></div>");
+
+        strcat(messages, "<div class=\"right\"> <div class=\"top\"><span>Name: <span class=\"name\">Bear</span></span></div>");
+        
+
+        char sqlQuerryForMessages[200] = {0};
+
+        for(int j = 0; j < i; j++){
+            char messagesFromAUser[3000];
+            sprintf(sqlQuerryForMessages, "select mesaj, id_from, id_touser from mesaj where (id_from = %d and id_touser = %s) or (id_from = %s and id_touser = %d) ORDER BY receive_date LIMIT 100", atoi(cookie), userIdsInOrder[j], userIdsInOrder[j], atoi(cookie));
+
+            messagesFromAUser[0] = '\0';
+            rc = sqlite3_exec(db, sqlQuerryForMessages, callbackProfilePosts, messagesFromAUser, &err_msg);
+            
+            
+            printf("%s\n", messagesFromAUser);
+
+            char* pchM = NULL;
+            pchM = strtok(messagesFromAUser, "~");
+
+            char messagesReturned[105][256];
+
+            int k = 0; 
+            while(pchM != NULL){
+                strcat(messagesReturned[k], pchM);
+                pchM = strtok(NULL, "~");
+                ++k;
+            }
+
+
+            sprintf(messages, "%s <div class=\"chat\" data-chat=\"%s\"> <div id = \"%s\" style=\"overflow-y: scroll;\">", messages, tokensInOrder[j], tokensInOrder[j]);
+
+            for(int l = 0; l < k; l++){
+                char* messTab = NULL;
+                char tokensForMss[3][300];
+                messTab = strtok(messagesReturned[l], "|");
+                int x = 0;
+                while (messTab != NULL){
+                    strcat(tokensForMss[k], messTab);
+                    messTab = strtok(NULL, "|");
+                    x++;
+                }
+
+                //printf("%s-%s-%d\n", tokensForMss[1], tokensForMss[2], atoi(cookie));
+
+                if(atoi(tokensForMss[1]) == atoi(cookie)){
+                    printf("%s\n", "me");
+                    sprintf(messages, "%s <div class=\"bubble me\"> %s! </div>", messages, tokensForMss[0]);
+                }else if(atoi(tokensForMss[2]) == atoi(cookie)){
+                    printf("%s\n", "you");
+                    sprintf(messages, "%s <div class=\"bubble you\"> %s! </div>", messages, tokensForMss[0]);
+                }
+
+                tokensForMss[0][0] = '\0';
+                tokensForMss[1][0] = '\0';
+                tokensForMss[2][0] = '\0';
+
+
+            }
+
+            strcat(messages, "</div></div>");
+        }
+
+        strcat(messages, "<div class=\"write\"> <a href=\"javascript:;\" class=\"write-link attach\"></a> <input type=\"text\" /> </div> </div>");
+
+        sprintf(file_buff,"%s%s%s%s", head, people, messages, bottom);
+
         long resp_size = strlen(file_buff);
 
         sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
@@ -1200,8 +1351,8 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
        printf("A picat dupa time declaration\n");
 
         char sqlInsert[1000] = {0};
-        sprintf(sqlInsert, "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (%c, %c, '%d-%02d-%02d %02d:%02d:%02d', '%s', '%s');",
-        cookiezy[0], private[0], tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, decodedImgURL, decodedDescription);
+        sprintf(sqlInsert, "INSERT INTO POSTARE(user_id, grup_id, posted_date, img_source, description) VALUES (%d, %c, '%d-%02d-%02d %02d:%02d:%02d', '%s', '%s');",
+        atoi(cookiezy), private[0], tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec, decodedImgURL, decodedDescription);
 
         printf("A picat dupa time use\n");
 
@@ -1247,16 +1398,15 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
             pch = strtok(NULL, "&");
         }
 
-        printf("%c\n", userId[0]);
 
-        sprintf(sqlInsert, "INSERT INTO prieteni(id_user, id_friend) values (%c, %c);", cookiezy[0], userId[0]);
+        sprintf(sqlInsert, "INSERT INTO prieteni(id_user, id_friend) values (%d, %d);", atoi(cookiezy), atoi(userId));
         rc = sqlite3_exec(db, sqlInsert, 0, 0, &err_msg);
         
 
         if (rc != SQLITE_OK ) {
             if(strstr(err_msg, "UNIQUE")){
                 char sqlDelete[1000] = {0};
-                sprintf(sqlDelete, "DELETE FROM prieteni WHERE id_user=%c AND id_friend=%c;", cookiezy[0], userId[0]);
+                sprintf(sqlDelete, "DELETE FROM prieteni WHERE id_user=%d AND id_friend=%d;", atoi(cookiezy), atoi(userId));
                 int rc2;
                 char* err_msg2 = 0;
                 rc2 = sqlite3_exec(db, sqlDelete, 0, 0, &err_msg2);
@@ -1342,7 +1492,7 @@ void put_response_generator(int conn_fd, char* requestPage, char* requestHead, c
 
         char sqlUpdate[1000] = {0};
 
-        sprintf(sqlUpdate, "UPDATE users SET nume='%s', prenume='%s', profile_img='%s', cover_url='%s' WHERE user_id=%c", updateName, updatePreName, decodedImageURL, decodedCoverURL, cookiezy[0]);
+        sprintf(sqlUpdate, "UPDATE users SET nume='%s', prenume='%s', profile_img='%s', cover_url='%s' WHERE user_id=%d", updateName, updatePreName, decodedImageURL, decodedCoverURL, atoi(cookiezy));
         
         printf("%s\n", sqlUpdate);
         
@@ -1497,6 +1647,7 @@ void parsingPath(int new_socket, char* path, char* cookie){
             write (new_socket, file_buff, strlen(file_buff));
         }
         else{
+            printf("%s\n", path);
             response_generator(new_socket, profile);
         }
         profile[0] = '\0';
@@ -1526,6 +1677,26 @@ void parsingPath(int new_socket, char* path, char* cookie){
            
             //TODO: personalised profile 
             strcat(file_buff, personalizedEditPageMaker(edit, cookie));
+           
+            write (new_socket, file_buff, strlen(file_buff));
+        }
+        else{
+            response_generator(new_socket, edit);
+        }
+        edit[0] = '\0';
+    
+    }else if(strstr(path, "messenger")){
+        
+        char* edit = strstr(path, "messenger") + 9;
+        
+        
+
+        //
+         
+        if((strstr(path, "messenger/img/") == 0) && (strstr(path, "messenger/css/")== 0) && (strstr(path, "messenger/js/")== 0)){
+           
+            //TODO: personalised profile 
+            strcat(file_buff, personalizedMessagePageMaker(cookie));
            
             write (new_socket, file_buff, strlen(file_buff));
         }
