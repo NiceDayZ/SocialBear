@@ -1,7 +1,27 @@
-$('.chat[data-chat=person3]').addClass('active-chat');
-$('.person[data-chat=person3]').addClass('active');
+
+$('#textBoxInput').on('keypress',function(e) {
+    if(e.which == 13) {
+        $.ajax({
+            type: 'POST',
+            dataType: "html",
+            url: '/postMsg',
+            data: {message: $('#textBoxInput').val(), idTo: $('.active').attr('data-chat')},
+            success: function(data)
+                {
+                    if(data == "succes"){
+                        getNewMessages();
+                    }
+                    else{
+                        alert("Could not send messege");
+                    }
+                }
+            });
+            $('#textBoxInput').val('');
+    }
+});
 
 $('.left .person').mousedown(function(){
+    $('#textBoxInput').val('');
     if ($(this).hasClass('.active')) {
         return false;
     } else {

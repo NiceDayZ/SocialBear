@@ -820,21 +820,17 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         return resp;
 }
 
-char* personalizedMessagePageMaker(char* cookie){
+
+
+char* ajaxMessagePageMaker(char* cookie){
 
     char file_buff[MAX_LEN] = {0};
-    char head[5000] = {0};
     char people[5000] = {0};
     char messages[MAX_LEN] = {0};
-    char bottom [15000] = {0};
     char responce[MAX_LEN] = {0};
     char *resp;
 
     char returnedUsers[MAX_LEN] = {0};
-
-    strcat(head, "<!DOCTYPE html> <html > <head> <meta charset=\"UTF-8\"> <title>chat</title> <link rel=\"stylesheet\" href=\"https://cdnjs.cloudflare.com/ajax/libs/meyer-reset/2.0/reset.min.css\"> <link rel=\"stylesheet\" href=\"css/chat2.css\"> </head> <body> <div class=\"wrapper\"> <div class=\"container\">");
-    strcat(bottom, "</div> </div> <script src='http://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.3/jquery.min.js'></script> <script src=\"js/chat.js\"></script> </body> </html>");
-
 
     sqlite3 *db;
         char *err_msg = 0;
@@ -887,7 +883,7 @@ char* personalizedMessagePageMaker(char* cookie){
         strcat(userIdsInOrder[j], tokensForUser[0]);
         strcat(tokensInOrder[j], tokensForUser[3]);
 
-        sprintf(singularUser, "<li class=\"person\" data-chat=\"%s\"> <img src=\"%s\" alt=\"%s%s\" /> <span class=\"name\">%s%s</span> </li>",
+        sprintf(singularUser, "<li class=\"person\" data-chat=\"%s\"> <img src=\"%s\" alt=\"%s%s\" /> <span class=\"name\">%s %s</span> </li>",
         tokensForUser[3], tokensForUser[4], tokensForUser[2], tokensForUser[1], tokensForUser[2], tokensForUser[1]);
         strcat(people, singularUser);
 
@@ -896,25 +892,30 @@ char* personalizedMessagePageMaker(char* cookie){
 
         strcat(people, "</ul></div>");
 
-        strcat(messages, "<div class=\"right\"> <div class=\"top\"><span>Name: <span class=\"name\">Bear</span></span></div>");
+        strcat(messages, "<div class=\"right\"> <div class=\"top\"><span>Name: <span id=\"topName\" class=\"name\">Bear</span></span></div>");
         
 
-        char sqlQuerryForMessages[200] = {0};
-
         for(int j = 0; j < i; j++){
-            char messagesFromAUser[3000];
+            
+
+            char sqlQuerryForMessages[200] = {0};
+            char messagesFromAUser[3000] = {0};
+            messagesFromAUser[0] = '\0';
+            sqlQuerryForMessages[0] = '\0';
             sprintf(sqlQuerryForMessages, "select mesaj, id_from, id_touser from mesaj where (id_from = %d and id_touser = %s) or (id_from = %s and id_touser = %d) ORDER BY receive_date LIMIT 100", atoi(cookie), userIdsInOrder[j], userIdsInOrder[j], atoi(cookie));
 
-            messagesFromAUser[0] = '\0';
+            //printf("%s\n\n", sqlQuerryForMessages);
+
             rc = sqlite3_exec(db, sqlQuerryForMessages, callbackProfilePosts, messagesFromAUser, &err_msg);
             
             
-            printf("%s\n", messagesFromAUser);
+            
+            //printf("%s\n", messagesFromAUser);
 
             char* pchM = NULL;
             pchM = strtok(messagesFromAUser, "~");
 
-            char messagesReturned[105][256];
+            char messagesReturned[105][256] = {0};
 
             int k = 0; 
             while(pchM != NULL){
@@ -925,41 +926,38 @@ char* personalizedMessagePageMaker(char* cookie){
 
 
             sprintf(messages, "%s <div class=\"chat\" data-chat=\"%s\"> <div id = \"%s\" style=\"overflow-y: scroll;\">", messages, tokensInOrder[j], tokensInOrder[j]);
-
+            
             for(int l = 0; l < k; l++){
                 char* messTab = NULL;
-                char tokensForMss[3][300];
+                char tokensForMss[3][300] = {0};
                 messTab = strtok(messagesReturned[l], "|");
                 int x = 0;
                 while (messTab != NULL){
-                    strcat(tokensForMss[k], messTab);
+                    strcat(tokensForMss[x], messTab);
                     messTab = strtok(NULL, "|");
                     x++;
                 }
 
-                //printf("%s-%s-%d\n", tokensForMss[1], tokensForMss[2], atoi(cookie));
-
+                
                 if(atoi(tokensForMss[1]) == atoi(cookie)){
-                    printf("%s\n", "me");
-                    sprintf(messages, "%s <div class=\"bubble me\"> %s! </div>", messages, tokensForMss[0]);
+                    sprintf(messages, "%s <div class=\"bubble me\"> %s </div>", messages, tokensForMss[0]);
                 }else if(atoi(tokensForMss[2]) == atoi(cookie)){
-                    printf("%s\n", "you");
-                    sprintf(messages, "%s <div class=\"bubble you\"> %s! </div>", messages, tokensForMss[0]);
+                    sprintf(messages, "%s <div class=\"bubble you\"> %s </div>", messages, tokensForMss[0]);
                 }
 
                 tokensForMss[0][0] = '\0';
                 tokensForMss[1][0] = '\0';
                 tokensForMss[2][0] = '\0';
 
-
+                
             }
 
             strcat(messages, "</div></div>");
         }
 
-        strcat(messages, "<div class=\"write\"> <a href=\"javascript:;\" class=\"write-link attach\"></a> <input type=\"text\" /> </div> </div>");
+        strcat(messages, "<div class=\"write\"> <a href=\"javascript:;\" class=\"write-link attach\"></a> <input id=\"textBoxInput\" type=\"text\" /> </div> </div>");
 
-        sprintf(file_buff,"%s%s%s%s", head, people, messages, bottom);
+        sprintf(file_buff,"%s%s", people, messages);
 
         long resp_size = strlen(file_buff);
 
@@ -1435,6 +1433,55 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
         sqlite3_close(db);
         userId[0] = '\0';
         responce[0] = '\0';
+    }else if(strcmp(requestPage, "postMsg") == 0){
+        
+        char message[256] = {0};
+        char decodedMessege[256] = {0};
+        char idTo[128] = {0};
+        char responce[1024] = {0};
+        char sqlInsertMessage[1000] = {0};
+
+       
+
+        char* pch = NULL;
+        pch = strtok(requestHead, "&");
+
+        while (pch != NULL)
+        {
+            if(strstr(pch, "message=") != 0){
+                strcpy(message, pch + 8);
+                URIdecode(message, decodedMessege);
+            }else if(strstr(pch, "idTo=") != 0){
+                strcpy(idTo, pch + 5);
+            }
+            pch = strtok(NULL, "&");
+        }
+
+        time_t t = time(NULL);
+        struct tm tm = *localtime(&t);
+
+        sprintf(sqlInsertMessage, "INSERT INTO mesaj(mesaj, id_from, id_togrup, id_touser, receive_date) values ('%s', %d, 0, %d, '%d-%02d-%02d %02d:%02d:%02d');",
+        decodedMessege, atoi(cookiezy), atoi(idTo), tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
+
+        rc = sqlite3_exec(db, sqlInsertMessage, 0, 0, &err_msg);
+    
+
+        if (rc != SQLITE_OK ) {
+            strcpy(responce, "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfail");
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+        }else{
+            strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nsuccess");
+        }
+        
+        printf("%s (%s)->(%s) \n", decodedMessege, cookiezy, idTo);
+        
+        message[0] = '\0';
+        decodedMessege[0] = '\0';
+        idTo[0] = '\0';
+        responce[0] = '\0';
+        sqlInsertMessage[0] = '\0';
+        
     }
     
 }
@@ -1625,7 +1672,7 @@ void parsingPath(int new_socket, char* path, char* cookie){
     file_buff[0] = '\0';
     filesize[0] = '\0';
 
-    //printf("%s\n", path);
+    //printf("%s(%s)\n", path, cookie);
 
     //if GET REQUEST
     if(strcmp(path, "") == 0){
@@ -1647,7 +1694,7 @@ void parsingPath(int new_socket, char* path, char* cookie){
             write (new_socket, file_buff, strlen(file_buff));
         }
         else{
-            printf("%s\n", path);
+            //printf("%s\n", path);
             response_generator(new_socket, profile);
         }
         profile[0] = '\0';
@@ -1688,15 +1735,11 @@ void parsingPath(int new_socket, char* path, char* cookie){
     }else if(strstr(path, "messenger")){
         
         char* edit = strstr(path, "messenger") + 9;
-        
-        
-
-        //
          
         if((strstr(path, "messenger/img/") == 0) && (strstr(path, "messenger/css/")== 0) && (strstr(path, "messenger/js/")== 0)){
            
             //TODO: personalised profile 
-            strcat(file_buff, personalizedMessagePageMaker(cookie));
+            response_generator(new_socket, "chat.html");
            
             write (new_socket, file_buff, strlen(file_buff));
         }
@@ -1705,11 +1748,22 @@ void parsingPath(int new_socket, char* path, char* cookie){
         }
         edit[0] = '\0';
     
+    }else if(strstr(path, "AJAXmsg")){
+         //printf("%s\n", path);
+            //TODO: personalised profile 
+        strcat(file_buff, ajaxMessagePageMaker(cookie));
+           
+        write (new_socket, file_buff, strlen(file_buff));
+    
     }else if(strcmp(path, "login") == 0){
         response_generator(new_socket, "login.html");
     
     }else{
-        response_generator (new_socket, path);
+        if(strstr(path, "js/chat.js")){
+            response_generator (new_socket, "js/chat.js");
+        }else{
+            response_generator (new_socket, path);
+        }
     }
 }
 
