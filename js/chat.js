@@ -8,9 +8,9 @@ $('#textBoxInput').on('keypress',function(e) {
             data: {message: $('#textBoxInput').val(), idTo: $('.active').attr('data-chat')},
             success: function(data)
                 {
-                    if(data == "succes"){
-                        getNewMessages();
-                    }
+                    if(data == "success"){
+                    getNewMessages();
+                }
                     else{
                         alert("Could not send messege");
                     }
