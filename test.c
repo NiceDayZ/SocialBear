@@ -946,9 +946,9 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
 
             if(cookie != NULL){
                 if(checkIfUserLikedThisPost(atoi(tokensForPost[7]), atoi(cookie))){
-                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[7])));
                 }else{
-                    sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                    sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[7])));
                 }
             }
 
