@@ -86,7 +86,7 @@ int checkUserExistance(char* user){
 
     char sqlQ[200] = {0};
     char userReturned[128] = {0};
-    sprintf(sqlQ, "select * from users where token = '%s'", user);
+    sprintf(sqlQ, "select token from users where token = '%s'", user);
 
     rc = sqlite3_exec(db, sqlQ, callbackLogin, userReturned, &err_msg);
 
@@ -111,7 +111,31 @@ int checkMessagesExistance(int userFrom, int userTo){
 
     char sqlQ[200] = {0};
     char userReturned[128] = {0};
-    sprintf(sqlQ, "select * from mesaj where (id_from = %d and id_touser = %d) or (id_from = %d and id_touser = %d)", userFrom, userTo, userFrom, userTo);
+    sprintf(sqlQ, "select id_mesaj from mesaj where (id_from = %d and id_touser = %d) or (id_from = %d and id_touser = %d)", userFrom, userTo, userTo, userFrom);
+
+    rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
+
+    return strlen(userReturned);
+}
+
+int checkIfPostedByUser(int idPost, int idUser){
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("O crepat la baza de date");
+    }
+
+    char sqlQ[200] = {0};
+    char userReturned[128] = {0};
+    sprintf(sqlQ, "select id_postare from postare where id_postare = %d and user_id = %d", idPost, idUser);
 
     rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
 
@@ -164,11 +188,13 @@ char* personalizedFeedPageMaker(char *cookie){
         }
 
     if(cookie == NULL){
-        printf("Feed for non existend user\n");
+
+        //feed for non existent user
+
         strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
         
         char sqlQuerryForPosts[1000] = {0};
-        strcat(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100");
+        strcat(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100");
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg); 
@@ -200,7 +226,7 @@ char* personalizedFeedPageMaker(char *cookie){
         for(int j = 0; j < i; j++){
             char singularPost[2050] = {0};
             char* postTab = NULL;
-            char tokensForPost[8][1025] = {0};
+            char tokensForPost[9][1025] = {0};
             postTab = strtok(postsReturned[j], "|");
             int k = 0;
             while (postTab != NULL){
@@ -209,8 +235,8 @@ char* personalizedFeedPageMaker(char *cookie){
                 k++;
             }
            
-            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
             strcat(posts, singularPost);
 
             singularPost[0] = '\0';
@@ -235,7 +261,7 @@ char* personalizedFeedPageMaker(char *cookie){
         sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <a href=\"/messenger\" target=\"_blank\"> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> </a> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/> <div class=\"post post_form\" style=\"padding:0;\"> <div id=\"description\" contenteditable=\"true\">Description</div> <div id=\"imageURL\" contenteditable=\"true\">Image URL</div> <div contenteditable=\"false\"> <input type=\"checkbox\" value=\"1\" name=\"r1\" id=\"r1\" checked=\"checked\"/> <label class=\"whatever\" for=\"r1\">Private</label> </div> <button id=\"post_button\" class=\"post_form_submit\"></button> </div>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
-        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d) order by p.posted_date desc LIMIT 100;", atoi(cookie), atoi(cookie), atoi(cookie));
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d) order by p.posted_date desc LIMIT 100;", atoi(cookie), atoi(cookie), atoi(cookie));
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
@@ -265,9 +291,9 @@ char* personalizedFeedPageMaker(char *cookie){
         }
 
         for(int j = 0; j < i; j++){
-            char singularPost[2050] = {0};
+            char singularPost[2480] = {0};
             char* postTab = NULL;
-            char tokensForPost[8][1025] = {0};
+            char tokensForPost[9][1025] = {0};
             postTab = strtok(postsReturned[j], "|");
             int k = 0;
             while (postTab != NULL){
@@ -276,8 +302,14 @@ char* personalizedFeedPageMaker(char *cookie){
                 k++;
             }
            
-            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/>",
+            tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+
+            if(checkIfPostedByUser(atoi(tokensForPost[8]), atoi(cookie))){
+                strcat(singularPost, "<button class=\"button delete left\"></button>");
+            }
+
+            strcat(singularPost, "</div>");
             strcat(posts, singularPost);
 
             singularPost[0] = '\0';
@@ -286,7 +318,7 @@ char* personalizedFeedPageMaker(char *cookie){
         
         if((100 - i) > 0){
             char sqlQuerryForPosts2[1000] = {0};
-            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d order by p.posted_date desc LIMIT 100-%d;", atoi(cookie), i);
+            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d order by p.posted_date desc LIMIT 100-%d;", atoi(cookie), i);
 
             char returnedPosts2[MAX_LEN] = {0};
             rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
@@ -304,7 +336,7 @@ char* personalizedFeedPageMaker(char *cookie){
             for(int j = 0; j < ii; j++){
                 char singularPost[2050] = {0};
                 char* postTab = NULL;
-                char tokensForPost[8][1025] = {0};
+                char tokensForPost[9][1025] = {0};
                 postTab = strtok(postsReturned2[j], "|");
                 int k = 0;
                 while (postTab != NULL){
@@ -313,15 +345,15 @@ char* personalizedFeedPageMaker(char *cookie){
                     k++;
                 }
             
-                sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-                tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+                tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
                 strcat(posts, singularPost);
 
                 singularPost[0] = '\0';
             }
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script> $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } });  $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -444,7 +476,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         strcat(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" />  <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/login\"> <div class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Login</h2> </div> </a> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>");
         
         char sqlQuerryForPosts[1000] = {0};
-        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.grup_id = 0 AND p.description LIKE '%%%s%%' ORDER BY p.posted_date DESC LIMIT 100", search);
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.grup_id = 0 AND p.description LIKE '%%%s%%' ORDER BY p.posted_date DESC LIMIT 100", search);
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg); 
@@ -525,7 +557,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         for(int j = 0; j < i; j++){
             char singularPost[2050] = {0};
             char* postTab = NULL;
-            char tokensForPost[8][1025] = {0};
+            char tokensForPost[9][1025] = {0};
             postTab = strtok(postsReturned[j], "|");
             int k = 0;
             while (postTab != NULL){
@@ -534,8 +566,8 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
                 k++;
             }
            
-            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+            tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
             strcat(posts, singularPost);
 
             singularPost[0] = '\0';
@@ -560,7 +592,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         sprintf(head, "<!DOCTYPE html> <html> <head> <meta content=\"text/html;charset=utf-8\" http-equiv=\"Content-Type\"> <meta content=\"utf-8\" http-equiv=\"encoding\"> <title>SocialBear</title> <link rel=\"stylesheet\" href=\"css/reset.css\" /> <link rel=\"stylesheet\" href=\"css/profile.css\" /> <link rel=\"stylesheet\" href=\"css/home.css\" /> <link rel=\"stylesheet\" href=\"css/post.css\" /> <link rel=\"stylesheet\" href=\"css/widget.css\" /> <link rel=\"stylesheet\" href=\"css/menu.css\" /> <link rel=\"stylesheet\" href=\"css/chat.css\" /> </head> <body> <header> <img src=\"img/header/menu-button.png\" class=\"menu_img\"/> <a href=\"/\"> <img src=\"img/header/SocialBear.png\" class=\"logo\"/> </a> <input id=\"searchBar\" type=\"search\" placeholder=\"Search\" /> <a href=\"/messenger\" target=\"_blank\"> <img src=\"img/header/conversation-speech-bubbles-.png\" id=\"chatBubble\" class=\"nav\"/> </a> <img src=\"img/header/musica-searcher.png\" class=\"nav_s\"/> </header> <div class=\"menu\"> <a href = \"/profiles/%s\"> <div class=\"menu_element\"> <img src=\"img/header/history-clock-button.png\" class=\"element_image\" /> <h2>My Profile</h2> </div> </a> <a href = \"/edit/%s\"> <div class=\"menu_element\"> <img src=\"img/header/settings-cogwheel-button.png\" class=\"element_image\" /> <h2>Edit Profile</h2> </div> </a> <div id=\"logoutButton\" class=\"menu_element\"> <img src=\"img/header/ellipsis.png\" class=\"element_image\" /> <h2>Logout</h2> </div> </div> <div class=\"feed\"> <div class=\"posts\"> <br/><br/>", cookie, cookie);
         
         char sqlQuerryForPosts[1000] = {0};
-        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d)) order by p.posted_date desc LIMIT 100;",search, atoi(cookie), atoi(cookie), atoi(cookie));
+        sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d)) order by p.posted_date desc LIMIT 100;",search, atoi(cookie), atoi(cookie), atoi(cookie));
         
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
@@ -639,7 +671,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         for(int j = 0; j < i; j++){
             char singularPost[2050] = {0};
             char* postTab = NULL;
-            char tokensForPost[8][1025] = {0};
+            char tokensForPost[9][1025] = {0};
             postTab = strtok(postsReturned[j], "|");
             int k = 0;
             while (postTab != NULL){
@@ -648,17 +680,23 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
                 k++;
             }
            
-            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-            tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
-            strcat(posts, singularPost);
+            sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/>",
+            tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            
+            if(checkIfPostedByUser(atoi(tokensForPost[8]), atoi(cookie))){
+                strcat(singularPost, "<button class=\"button delete left\"></button>");
+            }
 
+            strcat(singularPost, "</div>");
+            
+            strcat(posts, singularPost);
             singularPost[0] = '\0';
         }
 
         
         if((100 - i) > 0){
             char sqlQuerryForPosts2[1000] = {0};
-            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d) order by p.posted_date desc LIMIT 100-%d;", search, atoi(cookie), i);
+            sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d) order by p.posted_date desc LIMIT 100-%d;", search, atoi(cookie), i);
 
             char returnedPosts2[MAX_LEN] = {0};
             rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
@@ -676,7 +714,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
             for(int j = 0; j < ii; j++){
                 char singularPost[2050] = {0};
                 char* postTab = NULL;
-                char tokensForPost[8][1025] = {0};
+                char tokensForPost[9][1025] = {0};
                 postTab = strtok(postsReturned2[j], "|");
                 int k = 0;
                 while (postTab != NULL){
@@ -685,15 +723,15 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
                     k++;
                 }
             
-                sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-                tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+                tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
                 strcat(posts, singularPost);
 
                 singularPost[0] = '\0';
             }
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload(); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload(); }); </script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -766,9 +804,9 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         
         char sqlQuerryForPosts[2000] = {0};
         if(cookie == NULL){
-            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100", profile);
+            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, id_postare from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 ORDER BY p.posted_date DESC LIMIT 100", profile);
         }else{
-            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 UNION select nume, prenume, grup_id, profile_img, posted_date, img_source, description from users u natural join postare p where u.token = '%s' AND p.grup_id = 1 AND (EXISTS(SELECT * FROM prieteni WHERE (id_user = %d and id_friend = %d)) OR p.user_id = %d) ORDER BY p.posted_date DESC LIMIT 100", profile, profile, atoi(cookie), atoi(profile), atoi(cookie));
+            sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, id_postare from users u natural join postare p where u.token = '%s' AND p.grup_id = 0 UNION select nume, prenume, grup_id, profile_img, posted_date, img_source, description, id_postare from users u natural join postare p where u.token = '%s' AND p.grup_id = 1 AND (EXISTS(SELECT * FROM prieteni WHERE (id_user = %d and id_friend = %d)) OR p.user_id = %d) ORDER BY p.posted_date DESC LIMIT 100", profile, profile, atoi(cookie), atoi(profile), atoi(cookie));
 
         }
         char returnedPosts[MAX_LEN] = {0};
@@ -801,7 +839,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         for(int j = 0; j < i; j++){
             char singularPost[2050] = {0};
             char* postTab = NULL;
-            char tokensForPost[7][1025] = {0};
+            char tokensForPost[8][1025] = {0};
             postTab = strtok(postsReturned[j], "|");
             int k = 0;
             while (postTab != NULL){
@@ -810,8 +848,15 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
                 k++;
             }
            
-            sprintf(singularPost, " <div class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"#\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
-            tokensForPost[3], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+            sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"#\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/>",
+            tokensForPost[7], tokensForPost[3], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+
+            if(cookie != NULL && checkIfPostedByUser(atoi(tokensForPost[7]), atoi(cookie))){
+                strcat(singularPost, "<button class=\"button delete left\"></button>");
+            }
+
+            strcat(singularPost, "</div>");
+
             strcat(posts, singularPost);
 
             singularPost[0] = '\0';
@@ -847,7 +892,7 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script>");
         
         if(cookie != NULL && atoi(cookie) == atoi(profile)){
-            strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script>");
+            strcat(bottom, "<script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script>");
         }else if(cookie != NULL){
             strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $('#messageButton').click(function(e) { $.ajax({ type: 'POST', dataType: \"html\", url: '/postMsg', data: {message: '~HelloBear', idTo: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ window.open('http://127.0.0.1:8080/messenger', '_blank'); } else{ alert(\"Could not send messege\"); } } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#followButton').click(function(e) { e.preventDefault(); $.ajax({ type: 'POST', dataType: \"text\", url: '/prieteni', data: {userId: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ location.reload(); }else{ alert(\"Could not establish friendship\"); } } }); }); });</script>");
         }else{
@@ -1628,7 +1673,54 @@ void put_response_generator(int conn_fd, char* requestPage, char* requestHead, c
         updateCoverURL[0] = '\0';
         decodedCoverURL[0] = '\0';
     }
-} 
+}
+
+void delete_response_generator(int conn_fd, char* requestPage, char* requestHead, char* cookiezy){
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("Database Error");
+    }
+
+    if(strcmp(requestPage, "deletePost") == 0){
+        //printf("%s\n%s\n", requestPage, requestHead);
+        char id[10] = {0};
+        char sqlDelete[128] = {0};
+        char responce[1024] = {0};
+
+        strcat(id, requestHead+3);
+
+        sprintf(sqlDelete, "DELETE FROM postare where id_postare = %s", id);
+
+        int rc;
+        rc = sqlite3_exec(db, sqlDelete, 0, 0, &err_msg);
+
+        if (rc != SQLITE_OK ) {
+            strcat(responce, "HTTP/1.1 404 Not Found\r\nContent-Length: 4\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfail");
+            printf("%s\n%s\n", sqlDelete, err_msg);
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+        }else{
+            strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nsuccess");
+        }
+
+        int writeError;
+        if((writeError = write (conn_fd, responce, strlen(responce))) < 0){
+            pthread_exit("crepat");
+        }
+
+        sqlite3_close(db);
+        id[0] = '\0';
+    }
+}
 
 int main ()
 {
@@ -1831,7 +1923,8 @@ void parsingPath(int new_socket, char* path, char* cookie){
             (strstr(path, ".css")== 0) && 
             (strstr(path, ".js") == 0) &&
             (strstr(path, ".woff2") == 0)&&
-            (strstr(path, ".gif") == 0)
+            (strstr(path, ".gif") == 0) &&
+            (strstr(path, ".html") == 0)
             ){
                 response_generator (new_socket, "404.html");
             }else{
@@ -1897,6 +1990,8 @@ void raspunde(void *arg)
                 post_response_generator(new_socket, path, strstr(bufferCopy, "\r\n\r\n") + 4, cookie);
             }else if(strstr(buffer, "PUT ") != 0){
                 put_response_generator(new_socket, path, strstr(bufferCopy, "\r\n\r\n") + 4, cookie);
+            }else if(strstr(buffer, "DELETE")){
+                delete_response_generator(new_socket, path, strstr(bufferCopy, "\r\n\r\n") + 4, cookie);
             }
                 //response_generator (new_socket, path);
         }

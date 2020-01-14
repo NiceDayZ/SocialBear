@@ -96,3 +96,11 @@
 	margin:0;
 	color:#2A80BA;
 }
+
+.feed .post .delete{
+	background-image:url(../img/header/rubbish-bin-delete-button.png);
+	background-size:16px 16px;
+	background-position:9px 10px;
+	background-repeat:no-repeat;
+	margin:0;
+}
