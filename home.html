@@ -86,8 +86,7 @@
 					Loremp impsus is a generated random text. 
 					<img src="https://cdn.pixabay.com/photo/2018/01/14/2/12/nature-3082832__340.jpg" class="post_image" /> 
 					<hr/>
-					<button class="button like right">999</button>
-					<button class="button ac_share right">23</button>
+					<button class="button right lk like">999</button>
 					<button class="button delete left"></button>
 				</div>
 				<div id="2" class="post">
@@ -99,8 +98,7 @@
 					Loremp impsus is a generated random text. 
 					Loremp impsus is a generated random text. 
 					<hr/>
-					<button class="button like right">999</button>
-					<button class="button share right">23</button>
+					<button class="button right lk like">100</button>
 					<button class="button delete left"></button>
 				</div>
 				<div class="post">
@@ -116,7 +114,7 @@
 					Loremp impsus is a generated random text. 
 					<img src="img/posts/2.jpg" class="post_image" />
 					<hr/>
-					<button class="button ac_like right">999</button>
+					<button class="button right ac_like">99</button>
 					<button class="button ac_share right">23</button>
 					<button class="button ac_comment left">11</button>
 				</div>
@@ -199,9 +197,37 @@
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
 		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/1.4.5/socket.io.min.js"></script>
 		<script>
+
+			$(".button.right.lk").click( function(e){
+				var thisButton = $(this);
+				$.ajax({
+					type: 'POST',
+					dataType: "html",
+					url: '/like',
+					data: {postId: thisButton.parent().attr('id')},
+					success: function(data)
+						{
+							if(data == "success"){
+								if (thisButton.hasClass('like')) {
+									console.log('like');
+									thisButton.removeClass("like").addClass("ac_like");
+									thisButton.html((parseInt(thisButton.html()) + 1).toString());
+								}else if (thisButton.hasClass('ac_like')) {
+									console.log('dislike');
+									thisButton.removeClass("ac_like").addClass("like");
+									thisButton.html((parseInt(thisButton.html()) - 1).toString());
+								}
+						}
+							else{
+								alert("Could not like post");
+							}
+						}
+            	});
+			});
 			
+
 			$(".button.delete.left").click(function(e){
-				//console.log($(this).parent().attr('id'));
+
 				if (confirm('Are you sure you want to delete this post?')) {
     				$.ajax({
 					type: 'DELETE',

@@ -90,6 +90,7 @@ int checkUserExistance(char* user){
 
     rc = sqlite3_exec(db, sqlQ, callbackLogin, userReturned, &err_msg);
 
+    sqlite3_close(db);
     return strlen(userReturned);     
 
 }
@@ -115,6 +116,8 @@ int checkMessagesExistance(int userFrom, int userTo){
 
     rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
 
+
+    sqlite3_close(db);
     return strlen(userReturned);
 }
 
@@ -138,8 +141,59 @@ int checkIfPostedByUser(int idPost, int idUser){
     sprintf(sqlQ, "select id_postare from postare where id_postare = %d and user_id = %d", idPost, idUser);
 
     rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
+    sqlite3_close(db);
 
     return strlen(userReturned);
+}
+
+int checkIfUserLikedThisPost(int idPost, int idUser){
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("O crepat la baza de date");
+    }
+
+    char sqlQ[200] = {0};
+    char userReturned[128] = {0};
+    sprintf(sqlQ, "select id_postare from like where id_postare = %d and id_user = %d", idPost, idUser);
+
+    rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
+    sqlite3_close(db);
+
+    return strlen(userReturned);
+}
+
+int countNumberOfLikesOfPost(int idPost){
+    sqlite3 *db;
+    char *err_msg = 0;
+    
+    int rc = sqlite3_open("ceva.db", &db);
+    
+    if (rc != SQLITE_OK) {
+        
+        fprintf(stderr, "Cannot open database: %s\n", 
+                sqlite3_errmsg(db));
+        sqlite3_close(db);
+        
+        pthread_exit("O crepat la baza de date");
+    }
+
+    char sqlQ[200] = {0};
+    char userReturned[128] = {0};
+    sprintf(sqlQ, "select COUNT(*) from like where id_postare = %d", idPost);
+
+    rc = sqlite3_exec(db, sqlQ, callbackProfilePosts, userReturned, &err_msg);
+    sqlite3_close(db);
+
+    return atoi(userReturned);
 }
 
 void parse(char* line, char* actualPath)
@@ -211,7 +265,6 @@ char* personalizedFeedPageMaker(char *cookie){
             
             pthread_exit("O crepat la baza de date");
         }
-        sqlite3_close(db);
 
         char* pch2 = NULL;
         char postsReturned[105][2050] = {0};
@@ -250,6 +303,7 @@ char* personalizedFeedPageMaker(char *cookie){
 
         sprintf(responce, "HTTP/1.1 200 OK\r\nContent-Length: %ld\r\nContent-Type: text/html\r\n\r\n%s", resp_size, file_buff);
 
+        sqlite3_close(db);
         resp = responce;
         return resp;
 
@@ -309,6 +363,12 @@ char* personalizedFeedPageMaker(char *cookie){
                 strcat(singularPost, "<button class=\"button delete left\"></button>");
             }
 
+            if(checkIfUserLikedThisPost(atoi(tokensForPost[8]), atoi(cookie))){
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+            }else{
+                sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+            }
+
             strcat(singularPost, "</div>");
             strcat(posts, singularPost);
 
@@ -345,15 +405,24 @@ char* personalizedFeedPageMaker(char *cookie){
                     k++;
                 }
             
-                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/>",
                 tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+                
+                if(checkIfUserLikedThisPost(atoi(tokensForPost[8]), atoi(cookie))){
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }else{
+                    sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }
+                
+                strcat(singularPost, "</div>");
+
                 strcat(posts, singularPost);
 
                 singularPost[0] = '\0';
             }
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } });  $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.right.lk\").click( function(e){ var thisButton = $(this); $.ajax({ type: 'POST', dataType: \"html\", url: '/like', data: {postId: thisButton.parent().attr('id')}, success: function(data) { if(data == \"success\"){ if (thisButton.hasClass('like')) { console.log('like'); thisButton.removeClass(\"like\").addClass(\"ac_like\"); thisButton.html((parseInt(thisButton.html()) + 1).toString()); }else if (thisButton.hasClass('ac_like')) { console.log('dislike'); thisButton.removeClass(\"ac_like\").addClass(\"like\"); thisButton.html((parseInt(thisButton.html()) - 1).toString()); } } else{ alert(\"Could not like post\"); } } }); }); $(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } });  $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT\"; window.location.href = \"/\"; }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -594,6 +663,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
         char sqlQuerryForPosts[1000] = {0};
         sprintf(sqlQuerryForPosts, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.user_id = %d or (EXISTS (select * from prieteni f where f.id_friend = u.user_id and f.id_user = %d) and p.grup_id = 1) or (p.posted_date > datetime('now','-2 days') and p.grup_id = 0 and p.user_id <> %d)) order by p.posted_date desc LIMIT 100;",search, atoi(cookie), atoi(cookie), atoi(cookie));
         
+
         char returnedPosts[MAX_LEN] = {0};
         rc = sqlite3_exec(db, sqlQuerryForPosts, callbackProfilePosts, returnedPosts, &err_msg);
 
@@ -626,7 +696,7 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
             
             pthread_exit("O crepat la baza de date");
         }
-        sqlite3_close(db);
+        
 
 
         char* pch3 = NULL;
@@ -687,6 +757,12 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
                 strcat(singularPost, "<button class=\"button delete left\"></button>");
             }
 
+            if(checkIfUserLikedThisPost(atoi(tokensForPost[8]), atoi(cookie))){
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+            }else{
+                sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+            }
+                
             strcat(singularPost, "</div>");
             
             strcat(posts, singularPost);
@@ -698,8 +774,12 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
             char sqlQuerryForPosts2[1000] = {0};
             sprintf(sqlQuerryForPosts2, "select nume, prenume, grup_id, profile_img, posted_date, img_source, description, u.token, id_postare from users u natural join postare p where p.description LIKE '%%%s%%' AND (p.grup_id = 0 and p.posted_date < datetime('now','-2 days') AND p.user_id <> %d) order by p.posted_date desc LIMIT 100-%d;", search, atoi(cookie), i);
 
+            printf("%s\n", sqlQuerryForPosts2);
+            
             char returnedPosts2[MAX_LEN] = {0};
             rc = sqlite3_exec(db, sqlQuerryForPosts2, callbackProfilePosts, returnedPosts2, &err_msg);
+
+            printf("%s\n", returnedPosts2);
 
             char* pch3 = NULL;
             char postsReturned2[105][2050] = {0};
@@ -723,15 +803,24 @@ char* personalizedSearchPageMaker(char* search,char* cookie){
                     k++;
                 }
             
-                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/> </div>",
+                sprintf(singularPost, " <div id=\"%s\" class=\"post\"> <img class=\"profile_pic\" src=\"%s\" /> <a href=\"/profiles/%s\" >%s %s</a> <font>%s</font> <hr/>%s<img src=\"%s\" class=\"post_image\" /> <hr/>",
                 tokensForPost[8], tokensForPost[3], tokensForPost[7], tokensForPost[1], tokensForPost[0], tokensForPost[4], tokensForPost[6], tokensForPost[5]);
+                
+                if(checkIfUserLikedThisPost(atoi(tokensForPost[8]), atoi(cookie))){
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }else{
+                    sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }
+                
+                strcat(singularPost, "</div>");
+                
                 strcat(posts, singularPost);
 
                 singularPost[0] = '\0';
             }
         }
         
-        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload(); }); </script> </body> </html>");
+        strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script> <script>$(\".button.right.lk\").click( function(e){ var thisButton = $(this); $.ajax({ type: 'POST', dataType: \"html\", url: '/like', data: {postId: thisButton.parent().attr('id')}, success: function(data) { if(data == \"success\"){ if (thisButton.hasClass('like')) { console.log('like'); thisButton.removeClass(\"like\").addClass(\"ac_like\"); thisButton.html((parseInt(thisButton.html()) + 1).toString()); }else if (thisButton.hasClass('ac_like')) { console.log('dislike'); thisButton.removeClass(\"ac_like\").addClass(\"like\"); thisButton.html((parseInt(thisButton.html()) - 1).toString()); } } else{ alert(\"Could not like post\"); } } }); }); $(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $('#searchBar').on('keypress',function(e) { if(e.which == 13) { window.location.href = \"/search/\" + $('#searchBar').val(); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){ document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload(); }); </script> </body> </html>");
         
         sprintf(file_buff, "%s%s%s", head,posts,bottom);
         
@@ -855,6 +944,14 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
                 strcat(singularPost, "<button class=\"button delete left\"></button>");
             }
 
+            if(cookie != NULL){
+                if(checkIfUserLikedThisPost(atoi(tokensForPost[7]), atoi(cookie))){
+                sprintf(singularPost,"%s <button class=\"button right lk ac_like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }else{
+                    sprintf(singularPost,"%s <button class=\"button right lk like\"> %d </button>", singularPost, countNumberOfLikesOfPost(atoi(tokensForPost[8])));
+                }
+            }
+
             strcat(singularPost, "</div>");
 
             strcat(posts, singularPost);
@@ -892,9 +989,9 @@ char* personalizedProfilePageMaker(char *profile, char *cookie){
         strcat(bottom, "</div> </div> <script src=\"https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js\"></script>");
         
         if(cookie != NULL && atoi(cookie) == atoi(profile)){
-            strcat(bottom, "<script>$(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script>");
+            strcat(bottom, "<script> $(\".button.right.lk\").click( function(e){ var thisButton = $(this); $.ajax({ type: 'POST', dataType: \"html\", url: '/like', data: {postId: thisButton.parent().attr('id')}, success: function(data) { if(data == \"success\"){ if (thisButton.hasClass('like')) { console.log('like'); thisButton.removeClass(\"like\").addClass(\"ac_like\"); thisButton.html((parseInt(thisButton.html()) + 1).toString()); }else if (thisButton.hasClass('ac_like')) { console.log('dislike'); thisButton.removeClass(\"ac_like\").addClass(\"like\"); thisButton.html((parseInt(thisButton.html()) - 1).toString()); } } else{ alert(\"Could not like post\"); } } }); }); $(\".button.delete.left\").click(function(e){ if (confirm('Are you sure you want to delete this post?')) { $.ajax({ type: 'DELETE', dataType: \"html\", url: '/deletePost', data: {id: $(this).parent().attr('id')}, success: function(data) { if(data == \"success\"){ location.reload(); } else{ alert(\"Could not delete post\"); } } }); } }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#description').click(function(e){ if($('#description').text() == \"Description\") $('#description').text(\"\"); }); $('#imageURL').click(function(e){ if($('#imageURL').text() == \"Image URL\") $('#imageURL').text(\"\"); }); }); $(document).ready(function() { $('#post_button').click(function(e) { e.preventDefault(); if($('#description').text() == \"\" || $('#description').text() == \"Description\"){ alert(\"Description can not be null\"); }else if(!$('#imageURL').text().includes(\"http://\") && !$('#imageURL').text().includes(\"https://\") && !($('#imageURL').text() == \"Image URL\") && !($('#imageURL').text() == \"\")){ alert(\"Invalid image URL\"); }else{ var imgURL; if($('#imageURL').text() == \"Image URL\" || $('#imageURL').text() == \"\"){ imgURL = \"https://cdn.pixabay.com/photo/2018/01/1/23/12/nature-3082832__340.jpg\"; }else{ imgURL = $('#imageURL').text(); } $.ajax({ type: 'POST', dataType: \"text\", url: '/postare', data: {description: $('#description').text(), imageUrl: imgURL, private: $('#r1').prop('checked') ? '1' : '0'}, success: function(data) { if(data == \"success\"){ window.location.href = \"/\"; }else{ alert(\"There was an error while posting your post\"); } } }); } }); }); </script>");
         }else if(cookie != NULL){
-            strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $('#messageButton').click(function(e) { $.ajax({ type: 'POST', dataType: \"html\", url: '/postMsg', data: {message: '~HelloBear', idTo: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ window.open('http://127.0.0.1:8080/messenger', '_blank'); } else{ alert(\"Could not send messege\"); } } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#followButton').click(function(e) { e.preventDefault(); $.ajax({ type: 'POST', dataType: \"text\", url: '/prieteni', data: {userId: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ location.reload(); }else{ alert(\"Could not establish friendship\"); } } }); }); });</script>");
+            strcat(bottom, "<script> $(\".button.right.lk\").click( function(e){ var thisButton = $(this); $.ajax({ type: 'POST', dataType: \"html\", url: '/like', data: {postId: thisButton.parent().attr('id')}, success: function(data) { if(data == \"success\"){ if (thisButton.hasClass('like')) { console.log('like'); thisButton.removeClass(\"like\").addClass(\"ac_like\"); thisButton.html((parseInt(thisButton.html()) + 1).toString()); }else if (thisButton.hasClass('ac_like')) { console.log('dislike'); thisButton.removeClass(\"ac_like\").addClass(\"like\"); thisButton.html((parseInt(thisButton.html()) - 1).toString()); } } else{ alert(\"Could not like post\"); } } }); }); $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); $('#messageButton').click(function(e) { $.ajax({ type: 'POST', dataType: \"html\", url: '/postMsg', data: {message: '~HelloBear', idTo: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ window.open('http://127.0.0.1:8080/messenger', '_blank'); } else{ alert(\"Could not send messege\"); } } }); }); $(\"#logoutButton\").click(function(e){console.log(document.cookie); document.cookie = \"token= ; expires = Thu, 01 Jan 1970 00:00:00 GMT; path=/\"; location.reload();}); $(document).ready(function() { $('#followButton').click(function(e) { e.preventDefault(); $.ajax({ type: 'POST', dataType: \"text\", url: '/prieteni', data: {userId: location.href.substr(location.href.lastIndexOf('/') + 1)}, success: function(data) { if(data == \"success\"){ location.reload(); }else{ alert(\"Could not establish friendship\"); } } }); }); });</script>");
         }else{
             strcat(bottom, "<script> $(window).on('load', function() { $(\"img\").each(function(){ var image = $(this); if(this.naturalWidth == 0 || image.readyState == 'uninitialized'){ $(image).unbind(\"error\").hide(); } }); }); </script>");
         }
@@ -1433,9 +1530,12 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
             }
             pch = strtok(NULL, "&");
         }
+
+         printf("A picat inaite time declaration\n");
         
         time_t t = time(NULL);
-        struct tm tm = *localtime(&t);
+        struct tm tm;
+        localtime_r(&t, &tm);
        
        printf("A picat dupa time declaration\n");
 
@@ -1548,12 +1648,15 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
             pch = strtok(NULL, "&");
         }
 
-        printf("%s\n", "Un mesaj dupa ce a trecut ce a trecut de time");
+        
 
         
         if(!checkMessagesExistance(atoi(cookiezy), atoi(idTo)) || !(message[0] == '~')){
             time_t t = time(NULL);
-            struct tm tm = *localtime(&t);
+            struct tm tm;
+            localtime_r(&t, &tm);
+
+            printf("%s\n", "Un mesaj dupa ce a trecut ce a trecut de time");
 
             sprintf(sqlInsertMessage, "INSERT INTO mesaj(mesaj, id_from, id_togrup, id_touser, receive_date) values ('%s', %d, 0, %d, '%d-%02d-%02d %02d:%02d:%02d');",
             decodedMessege, atoi(cookiezy), atoi(idTo), tm.tm_year + 1900, tm.tm_mon + 1, tm.tm_mday, tm.tm_hour, tm.tm_min, tm.tm_sec);
@@ -1587,6 +1690,63 @@ void post_response_generator(int conn_fd, char* requestPage, char* requestHead, 
         responce[0] = '\0';
         sqlInsertMessage[0] = '\0';
         
+    }else if(strcmp(requestPage, "like") == 0){
+        
+        char sqlInsert[1000] = {0};
+        char postId[128] = {0};
+        char responce[1024] = {0};
+
+        
+         char* pch = NULL;
+        pch = strtok(requestHead, "&");
+
+        while (pch != NULL)
+        {
+            if(strstr(pch, "postId=") != 0){
+                strcat(postId, pch + 7);
+            }
+            pch = strtok(NULL, "&");
+        }
+
+        //printf("%s\n", postId);
+
+        
+        sprintf(sqlInsert, "INSERT INTO like(id_user, id_postare) values (%d, %d);", atoi(cookiezy), atoi(postId));
+        rc = sqlite3_exec(db, sqlInsert, 0, 0, &err_msg);
+        
+
+        if (rc != SQLITE_OK ) {
+            if(strstr(err_msg, "UNIQUE")){
+                char sqlDelete[1000] = {0};
+                sprintf(sqlDelete, "DELETE FROM like WHERE id_user=%d AND id_postare=%d;", atoi(cookiezy), atoi(postId));
+                int rc2;
+                char* err_msg2 = 0;
+                rc2 = sqlite3_exec(db, sqlDelete, 0, 0, &err_msg2);
+
+                if(rc2 != SQLITE_OK){
+                    sqlite3_free(err_msg);
+                    sqlite3_close(db);
+                    strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfail");
+                }else{
+                    strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nsuccess");
+                }
+            }else{
+                strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 4\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nfail");
+            }
+            sqlite3_free(err_msg);
+            sqlite3_close(db);
+        }else{
+            strcat(responce, "HTTP/1.1 200 OK\r\nContent-Length: 7\r\nContent-Type: text/plain\r\nConnection: close\r\n\r\nsuccess");
+        }
+
+        int writeError;
+        if((writeError = write (conn_fd, responce, strlen(responce))) < 0){
+            pthread_exit("crepat");
+        }
+
+        sqlite3_close(db);
+        postId[0] = '\0';
+        responce[0] = '\0';
     }
     
 }

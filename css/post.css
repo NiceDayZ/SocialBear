@@ -59,12 +59,12 @@
 	margin:0 0 0 20px;
 }
 .feed .post .ac_like {
-	background-image:url(../img/header/like2.png);
+	background-image:url(../img/header/like3.png);
 	background-size:16px 16px;
 	background-position:9px 9px;
 	background-repeat:no-repeat;
 	margin:0 0 0 20px;
-	color:#FB7598;
+	color:#2A80BA;
 }
 .feed .post .share {
 	background-image:url(../img/header/share.png);
