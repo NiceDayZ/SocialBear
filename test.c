@@ -1,12 +1,3 @@
-/* servTCPConcTh2.c - Exemplu de server TCP concurent care deserveste clientii
-   prin crearea unui thread pentru fiecare client.
-   Asteapta un numar de la clienti si intoarce clientilor numarul incrementat.
-	Intoarce corect identificatorul din program al thread-ului.
-  
-   
-   Autor: Lenuta Alboaie  <adria@infoiasi.ro> (c)2009
-*/
-
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
